@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, map, tap } from 'rxjs';
-import { AuthApi } from '../api/auth.api';
+import { AuthApi, LoginResponseDto } from '../api/auth.api';
 import { AuthMapper } from '../mappers/auth.mapper';
 import { LoginCredentials } from '../models/auth.model';
 import { TokenService } from '../../../core/auth/services/token.service';
@@ -25,9 +25,9 @@ export class AuthService {
    */
   login(credentials: LoginCredentials): Observable<void> {
     return this.authApi.login(credentials).pipe(
-      tap(dto => {
+      tap((dto: LoginResponseDto) => {
         const tokens = AuthMapper.toTokens(dto);
-        this.tokenSvc.saveTokens(tokens.accessToken, tokens.refreshToken);
+        this.tokenSvc.saveTokens(tokens.accessToken);
         this.authState.setUser(AuthMapper.toSessionUser(dto));
       }),
       tap(() => this.router.navigate(['/dashboard'])),

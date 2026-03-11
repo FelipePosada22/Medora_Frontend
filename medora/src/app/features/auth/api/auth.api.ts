@@ -5,14 +5,15 @@ import { API_URL } from '../../../core/config/api.config';
 
 /** Raw login response shape from the REST API. */
 export interface LoginResponseDto {
-  access_token: string;
-  refresh_token: string;
+  token: string;
   user: {
     id: string;
-    full_name: string;
+    tenantId: string;
+    name: string;
     email: string;
     role: string;
-    tenant_id: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 

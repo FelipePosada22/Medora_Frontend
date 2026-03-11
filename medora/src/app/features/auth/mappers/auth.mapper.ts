@@ -11,28 +11,27 @@ export class AuthMapper {
 
   static toTokens(dto: LoginResponseDto): AuthTokens {
     return {
-      accessToken:  dto.access_token,
-      refreshToken: dto.refresh_token,
+      accessToken:  dto.token,
     };
   }
 
   static toAuthUser(dto: LoginResponseDto): AuthUser {
     return {
       id:       dto.user.id,
-      name:     dto.user.full_name,
+      name:     dto.user.name,
       email:    dto.user.email,
       role:     dto.user.role as AuthUser['role'],
-      tenantId: dto.user.tenant_id,
+      tenantId: dto.user.tenantId,
     };
   }
 
   static toSessionUser(dto: LoginResponseDto): SessionUser {
     return {
       id:       dto.user.id,
-      name:     dto.user.full_name,
+      name:     dto.user.name,
       email:    dto.user.email,
       role:     dto.user.role as SessionUser['role'],
-      tenantId: dto.user.tenant_id,
+      tenantId: dto.user.tenantId,
     };
   }
 }
