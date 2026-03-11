@@ -9,13 +9,17 @@
   </div>
 
   <app-card>
+    @if (vm.errorMessage()) {
+      <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+    }
+
     <!-- Search -->
     <div class="page__toolbar" style="margin-bottom: var(--space-4)">
       <input
         class="search-input"
         type="search"
         placeholder="Buscar por paciente o doctor..."
-        (input)="onSearch($event)" />
+        (input)="vm.search($any($event.target).value)" />
     </div>
 
     <!-- Status tabs -->
@@ -23,56 +27,64 @@
       @for (tab of tabs; track tab.value) {
         <button
           class="status-tab"
-          [class.status-tab--active]="activeFilter() === tab.value"
-          (click)="setFilter(tab.value)">
+          [class.status-tab--active]="vm.activeFilter() === tab.value"
+          (click)="vm.setFilter(tab.value)">
           {{ tab.label }}
         </button>
       }
     </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Paciente</th>
-          <th>Doctor</th>
-          <th>Tipo</th>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (appt of appointments(); track appt.id) {
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando citas...</div>
+    } @else {
+      <table class="table">
+        <thead>
           <tr>
-            <td>
-              <div style="display:flex; align-items:center; gap:var(--space-2)">
-                <app-avatar [name]="appt.patient" size="xs" />
-                {{ appt.patient }}
-              </div>
-            </td>
-            <td>{{ appt.doctor }}</td>
-            <td>{{ appt.type }}</td>
-            <td>{{ appt.date | date:'dd/MM/yyyy' }}</td>
-            <td>{{ appt.date | date:'HH:mm' }}</td>
-            <td><app-badge [variant]="appt.status">{{ appt.status }}</app-badge></td>
-            <td>
-              <div class="row-actions">
-                <app-button variant="ghost" size="sm">Ver</app-button>
-                <app-button variant="ghost" size="sm">Editar</app-button>
-              </div>
-            </td>
+            <th>Paciente</th>
+            <th>Doctor</th>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Estado</th>
+            <th></th>
           </tr>
-        }
-        @empty {
-          <tr>
-            <td colspan="7">
-              <div class="state-placeholder">Sin citas para este filtro</div>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (appt of vm.filtered(); track appt.id) {
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:var(--space-2)">
+                  <app-avatar [name]="appt.patientName" size="xs" />
+                  {{ appt.patientName }}
+                </div>
+              </td>
+              <td>{{ appt.professionalName }}</td>
+              <td>{{ appt.appointmentTypeName }}</td>
+              <td>{{ appt.startTime | date:'dd/MM/yyyy' }}</td>
+              <td>{{ appt.startTime | date:'HH:mm' }}</td>
+              <td>
+                <app-badge [variant]="statusBadge(appt.status)">
+                  {{ statusLabel(appt.status) }}
+                </app-badge>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <app-button variant="ghost" size="sm">Ver</app-button>
+                  <app-button variant="ghost" size="sm">Editar</app-button>
+                </div>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="7">
+                <div class="state-placeholder">Sin citas para este filtro</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
   </app-card>
 
 </div>
