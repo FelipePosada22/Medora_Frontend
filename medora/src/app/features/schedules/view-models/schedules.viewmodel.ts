@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { Subject, switchMap, startWith, tap, catchError, EMPTY, forkJoin, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SchedulesService } from '../services/schedules.service';
@@ -7,6 +8,7 @@ import { Professional } from '../../professionals/models/professional.model';
 import { Schedule, DayOfWeek } from '../models/schedule.model';
 
 export interface DaySlot {
+  scheduleId: string | null; // null if day is not enabled
   dayOfWeek: DayOfWeek;
   label: string;
   enabled: boolean;
@@ -29,11 +31,12 @@ function buildDays(schedules: Schedule[]): DaySlot[] {
   return ORDERED_DAYS.map(dow => {
     const slot = schedules.find(s => s.dayOfWeek === dow);
     return {
-      dayOfWeek: dow,
-      label:     DAY_LABELS[dow],
-      enabled:   !!slot,
-      startTime: slot?.startTime ?? '08:00',
-      endTime:   slot?.endTime   ?? '17:00',
+      scheduleId: slot?.id ?? null,
+      dayOfWeek:  dow,
+      label:      DAY_LABELS[dow],
+      enabled:    !!slot,
+      startTime:  slot?.startTime ?? '08:00',
+      endTime:    slot?.endTime   ?? '17:00',
     };
   });
 }
@@ -42,11 +45,25 @@ function buildDays(schedules: Schedule[]): DaySlot[] {
 export class SchedulesViewModel {
   private readonly schedulesSvc     = inject(SchedulesService);
   private readonly professionalsSvc = inject(ProfessionalsService);
+  private readonly fb               = inject(FormBuilder);
 
   readonly items        = signal<ProfessionalWithSchedule[]>([]);
   readonly isLoading    = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly selectedId   = signal<string | null>(null);
+
+  // Add schedule form state
+  readonly showAddForm            = signal(false);
+  readonly isSaving               = signal(false);
+  readonly formError              = signal<string | null>(null);
+  readonly selectedProfessionalId = signal<string | null>(null);
+
+  readonly addScheduleForm = this.fb.nonNullable.group({
+    professionalId: ['', Validators.required],
+    dayOfWeek:      [1 as DayOfWeek, Validators.required],
+    startTime:      ['08:00', Validators.required],
+    endTime:        ['17:00', Validators.required],
+  });
 
   readonly isEmpty = computed(() => !this.isLoading() && this.items().length === 0);
 
@@ -98,5 +115,47 @@ export class SchedulesViewModel {
 
   reload(): void {
     this.load$.next();
+  }
+
+  openAddSchedule(professionalId: string): void {
+    this.selectedProfessionalId.set(professionalId);
+    this.addScheduleForm.reset({
+      professionalId,
+      dayOfWeek: 1,
+      startTime: '08:00',
+      endTime:   '17:00',
+    });
+    this.showAddForm.set(true);
+    this.formError.set(null);
+  }
+
+  closeAddForm(): void {
+    this.showAddForm.set(false);
+    this.formError.set(null);
+    this.selectedProfessionalId.set(null);
+  }
+
+  saveSchedule(): void {
+    if (this.addScheduleForm.invalid) return;
+    this.isSaving.set(true);
+    const raw = this.addScheduleForm.getRawValue();
+    this.schedulesSvc
+      .create({
+        professionalId: raw.professionalId,
+        dayOfWeek:      raw.dayOfWeek as DayOfWeek,
+        startTime:      raw.startTime,
+        endTime:        raw.endTime,
+      })
+      .subscribe({
+        next: () => { this.closeAddForm(); this.reload(); this.isSaving.set(false); },
+        error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+      });
+  }
+
+  removeScheduleEntry(scheduleId: string): void {
+    this.schedulesSvc.remove(scheduleId).subscribe({
+      next: () => this.reload(),
+      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+    });
   }
 }

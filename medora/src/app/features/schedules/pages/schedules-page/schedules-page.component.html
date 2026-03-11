@@ -36,16 +36,62 @@
                   @if (day.enabled) {
                     <span class="day-chip__hours">{{ day.startTime }}</span>
                     <span class="day-chip__hours">{{ day.endTime }}</span>
+                    <button
+                      type="button"
+                      class="day-chip__action day-chip__action--remove"
+                      title="Quitar día"
+                      (click)="vm.removeScheduleEntry(day.scheduleId!)">
+                      ×
+                    </button>
                   } @else {
                     <span class="day-chip__hours">Libre</span>
+                    <button
+                      type="button"
+                      class="day-chip__action day-chip__action--add"
+                      title="Agregar día"
+                      (click)="vm.openAddSchedule(item.professional.id)">
+                      +
+                    </button>
                   }
                 </div>
               }
             </div>
 
-            <div style="display:flex; justify-content:flex-end">
-              <app-button variant="ghost" size="sm">Editar horario</app-button>
-            </div>
+            @if (vm.showAddForm() && vm.selectedProfessionalId() === item.professional.id) {
+              <div class="form-panel">
+                <h3 class="form-panel__title">Agregar día de trabajo</h3>
+                @if (vm.formError()) {
+                  <div class="alert alert--error">{{ vm.formError() }}</div>
+                }
+                <form [formGroup]="vm.addScheduleForm" (ngSubmit)="vm.saveSchedule()">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label class="form-label">Día</label>
+                      <select class="form-select" formControlName="dayOfWeek">
+                        @for (opt of DAY_OPTIONS; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label">Hora de inicio</label>
+                      <input class="form-select" type="time" formControlName="startTime" />
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label">Hora de fin</label>
+                      <input class="form-select" type="time" formControlName="endTime" />
+                    </div>
+                  </div>
+                  <div class="form-actions">
+                    <app-button type="button" variant="ghost" size="sm" (click)="vm.closeAddForm()">Cancelar</app-button>
+                    <app-button type="submit" variant="primary" size="sm" [disabled]="vm.isSaving()">
+                      {{ vm.isSaving() ? 'Guardando...' : 'Guardar' }}
+                    </app-button>
+                  </div>
+                </form>
+              </div>
+            }
+
           </div>
         </app-card>
       }
