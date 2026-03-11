@@ -12,19 +12,19 @@
   <div class="stats-grid">
     <app-card padding="none">
       <div class="stat-card">
-        <div class="stat-card__value">{{ stats().total }}</div>
-        <div class="stat-card__label">Servicios activos</div>
+        <div class="stat-card__value">{{ vm.stats().total }}</div>
+        <div class="stat-card__label">Servicios registrados</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
-        <div class="stat-card__value">{{ stats().avgDuration }} min</div>
+        <div class="stat-card__value">{{ vm.stats().avgDuration }} min</div>
         <div class="stat-card__label">Duración promedio</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
-        <div class="stat-card__value">${{ stats().avgPrice }}</div>
+        <div class="stat-card__value">${{ vm.stats().avgPrice }}</div>
         <div class="stat-card__label">Precio promedio</div>
       </div>
     </app-card>
@@ -32,50 +32,48 @@
 
   <!-- Table -->
   <app-card>
+    @if (vm.errorMessage()) {
+      <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+    }
+
     <div class="page__toolbar" style="margin-bottom: var(--space-4)">
       <input
         class="search-input"
         type="search"
         placeholder="Buscar servicio..."
-        (input)="onSearch($event)" />
+        (input)="vm.search($any($event.target).value)" />
     </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Servicio</th>
-          <th>ID</th>
-          <th>Duración</th>
-          <th>Precio</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (type of types(); track type.id) {
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando tipos de cita...</div>
+    } @else if (vm.isEmpty()) {
+      <div class="state-placeholder">No hay tipos de cita registrados.</div>
+    } @else {
+      <table class="table">
+        <thead>
           <tr>
-            <td>
-              <span class="color-dot" [style.background]="type.color"></span>
-              <strong>{{ type.name }}</strong>
-            </td>
-            <td>{{ type.id }}</td>
-            <td>{{ type.duration }} min</td>
-            <td>${{ type.price.toFixed(2) }}</td>
-            <td>
-              <app-badge [variant]="type.active ? 'success' : 'default'">
-                {{ type.active ? 'Activo' : 'Inactivo' }}
-              </app-badge>
-            </td>
-            <td>
-              <div class="row-actions">
-                <app-button variant="ghost" size="sm">Editar</app-button>
-                <app-button variant="ghost" size="sm">{{ type.active ? 'Desactivar' : 'Activar' }}</app-button>
-              </div>
-            </td>
+            <th>Servicio</th>
+            <th>Duración</th>
+            <th>Precio</th>
+            <th></th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (type of vm.filtered(); track type.id) {
+            <tr>
+              <td><strong>{{ type.name }}</strong></td>
+              <td>{{ type.durationMinutes }} min</td>
+              <td>${{ type.price.toFixed(2) }}</td>
+              <td>
+                <div class="row-actions">
+                  <app-button variant="ghost" size="sm">Editar</app-button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
   </app-card>
 
 </div>
