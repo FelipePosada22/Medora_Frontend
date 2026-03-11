@@ -17,6 +17,7 @@ export interface Appointment {
   startTime: string;  // ISO datetime
   endTime: string;    // ISO datetime
   status: AppointmentStatus;
+  notes: string | null;
 }
 
 export interface AppointmentPayload {
@@ -24,6 +25,9 @@ export interface AppointmentPayload {
   professionalId: string;
   appointmentTypeId: string;
   startTime: string;
+  endTime: string;
+  status?: AppointmentStatus;
+  notes?: string | null;
 }
 
 /** Slot returned by GET /appointments/availability */
