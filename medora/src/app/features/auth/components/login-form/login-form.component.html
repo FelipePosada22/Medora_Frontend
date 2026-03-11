@@ -1,0 +1,31 @@
+<form [formGroup]="form()" (ngSubmit)="submitted.emit()" novalidate>
+
+  <app-input
+    label="Email"
+    type="email"
+    placeholder="doctor@clinica.com"
+    formControlName="email"
+    [required]="true"
+    [errorMessage]="getError('email')"
+  />
+
+  <app-input
+    label="Contraseña"
+    type="password"
+    placeholder="••••••••"
+    formControlName="password"
+    [required]="true"
+    [errorMessage]="getError('password')"
+  />
+
+  <app-button
+    type="submit"
+    variant="primary"
+    size="lg"
+    [loading]="isLoading()"
+    [disabled]="isLoading()"
+  >
+    Iniciar sesión
+  </app-button>
+
+</form>

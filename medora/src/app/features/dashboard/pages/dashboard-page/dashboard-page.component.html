@@ -1,0 +1,90 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Panel de Control</h1>
+      <p class="page__subtitle">Bienvenido de vuelta — aquí tienes el resumen del día</p>
+    </div>
+    <div class="quick-actions">
+      <app-button variant="secondary" size="sm" [routerLink]="['/patients']">Ver pacientes</app-button>
+      <app-button variant="primary"   size="sm" [routerLink]="['/appointments/new']">+ Nueva cita</app-button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    @for (kpi of kpis; track kpi.label) {
+      <app-card padding="none">
+        <div class="kpi-card">
+          <div class="kpi-card__icon">{{ kpi.icon }}</div>
+          <span class="kpi-card__label">{{ kpi.label }}</span>
+          <span class="kpi-card__value">{{ kpi.value }}</span>
+          <span class="kpi-card__trend"
+            [class.kpi-card__trend--up]="kpi.trendUp"
+            [class.kpi-card__trend--down]="!kpi.trendUp">
+            {{ kpi.trendUp ? '↑' : '↓' }} {{ kpi.trend }}
+          </span>
+        </div>
+      </app-card>
+    }
+  </div>
+
+  <!-- Main grid -->
+  <div class="dashboard-grid">
+
+    <!-- Upcoming appointments -->
+    <app-card>
+      <p class="section-title">Próximas Citas</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Hora</th>
+            <th>Tipo</th>
+            <th>Doctor</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (appt of appointments; track appt.patient + appt.time) {
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:var(--space-2)">
+                  <app-avatar [name]="appt.patient" size="xs" />
+                  {{ appt.patient }}
+                </div>
+              </td>
+              <td><strong>{{ appt.time }}</strong></td>
+              <td>{{ appt.type }}</td>
+              <td>{{ appt.doctor }}</td>
+              <td><app-badge [variant]="statusVariant(appt.status)">{{ appt.status }}</app-badge></td>
+              <td>
+                <app-button variant="ghost" size="sm">Atender</app-button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </app-card>
+
+    <!-- Staff status -->
+    <app-card>
+      <p class="section-title">Estado de Staff</p>
+      <div class="staff-list">
+        @for (member of staff; track member.name) {
+          <div class="staff-item">
+            <app-avatar [name]="member.name" size="sm" />
+            <div class="staff-item__info">
+              <div class="staff-item__name">{{ member.name }}</div>
+              <div class="staff-item__specialty">{{ member.specialty }}</div>
+            </div>
+            <app-badge [variant]="staffVariant(member.status)">{{ member.status }}</app-badge>
+          </div>
+        }
+      </div>
+    </app-card>
+
+  </div>
+</div>

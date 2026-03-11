@@ -1,0 +1,161 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Atención al Paciente</h1>
+      <p class="page__subtitle">Registro de consulta — Ana García · C-001</p>
+    </div>
+    <div style="display:flex; gap:var(--space-2)">
+      <app-button variant="secondary" size="sm">Cancelar</app-button>
+      <app-button variant="primary"   size="sm" [loading]="isSaving()" (click)="save()">Guardar consulta</app-button>
+    </div>
+  </div>
+
+  <div class="attention-layout">
+
+    <!-- Main area -->
+    <div>
+      <!-- Tabs -->
+      <div class="attention-tabs">
+        @for (tab of tabs; track tab.value) {
+          <button
+            class="attention-tab"
+            [class.attention-tab--active]="activeTab() === tab.value"
+            (click)="setTab(tab.value)">
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+
+      <!-- Consultation tab -->
+      @if (activeTab() === 'consultation') {
+        <app-card>
+          <form [formGroup]="consultationForm">
+            <div class="form-field">
+              <label class="form-label">Motivo de consulta</label>
+              <textarea class="form-textarea" rows="2" formControlName="chiefComplaint" placeholder="Describe el motivo principal de la visita..."></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Enfermedad actual</label>
+              <textarea class="form-textarea" rows="3" formControlName="currentIllness" placeholder="Historia y evolución de los síntomas..."></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Examen físico</label>
+              <textarea class="form-textarea" rows="3" formControlName="physicalExam" placeholder="Hallazgos del examen clínico..."></textarea>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 160px; gap:var(--space-3)">
+              <div class="form-field" style="margin-bottom:0">
+                <label class="form-label">Diagnóstico</label>
+                <input class="form-input" formControlName="diagnosis" placeholder="Descripción del diagnóstico..." />
+              </div>
+              <div class="form-field" style="margin-bottom:0">
+                <label class="form-label">Código CIE-10</label>
+                <input class="form-input" formControlName="cie10Code" placeholder="K02.1" />
+              </div>
+            </div>
+            <div class="form-field" style="margin-top:var(--space-4)">
+              <label class="form-label">Plan de tratamiento</label>
+              <textarea class="form-textarea" rows="2" formControlName="treatment" placeholder="Indicaciones y tratamiento a seguir..."></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Notas adicionales</label>
+              <textarea class="form-textarea" rows="2" formControlName="notes" placeholder="Observaciones internas..."></textarea>
+            </div>
+          </form>
+        </app-card>
+      }
+
+      <!-- Prescriptions tab -->
+      @if (activeTab() === 'prescriptions') {
+        <app-card>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4)">
+            <p style="font-weight:var(--font-weight-semibold)">Recetas actuales</p>
+            <app-button variant="secondary" size="sm">+ Agregar medicamento</app-button>
+          </div>
+          @for (rx of prescriptions; track rx.drug) {
+            <div class="rx-item">
+              <div class="rx-drug">{{ rx.drug }}</div>
+              <div class="rx-details">{{ rx.dose }} · {{ rx.frequency }} · {{ rx.days }} días</div>
+            </div>
+          }
+        </app-card>
+      }
+
+      <!-- Exams tab -->
+      @if (activeTab() === 'exams') {
+        <app-card>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4)">
+            <p style="font-weight:var(--font-weight-semibold)">Órdenes de examen</p>
+            <app-button variant="secondary" size="sm">+ Ordenar examen</app-button>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Examen</th>
+                <th>Prioridad</th>
+                <th>Notas</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (exam of examOrders; track exam.exam) {
+                <tr>
+                  <td><strong>{{ exam.exam }}</strong></td>
+                  <td>
+                    <app-badge [variant]="priorityVariant(exam.priority)">
+                      {{ exam.priority === 'urgent' ? 'Urgente' : 'Rutina' }}
+                    </app-badge>
+                  </td>
+                  <td>{{ exam.notes || '—' }}</td>
+                  <td><app-button variant="ghost" size="sm">Eliminar</app-button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </app-card>
+      }
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+
+      <!-- Patient card -->
+      <app-card>
+        <div style="display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-4)">
+          <app-avatar name="Ana García" size="md" />
+          <div>
+            <div style="font-weight:var(--font-weight-semibold)">Ana García</div>
+            <div style="font-size:var(--font-size-xs); color:var(--color-text-muted)">28 años · F · #PAC-001</div>
+          </div>
+        </div>
+        @if (allergies.length) {
+          <div style="margin-bottom:var(--space-3)">
+            <div style="font-size:var(--font-size-xs); font-weight:var(--font-weight-medium); color:var(--color-error-600); margin-bottom:var(--space-1)">⚠ Alergias</div>
+            @for (a of allergies; track a) {
+              <span class="allergy-chip">{{ a }}</span>
+            }
+          </div>
+        }
+        <div style="font-size:var(--font-size-xs); color:var(--color-text-muted)">
+          Última visita: 15/02/2026
+        </div>
+      </app-card>
+
+      <!-- Vitals -->
+      <app-card>
+        <p style="font-size:var(--font-size-sm); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-3)">Signos vitales</p>
+        <div class="vitals-grid">
+          @for (v of vitals; track v.label) {
+            <div class="vital-item">
+              <div class="vital-value">{{ v.value }}</div>
+              <div class="vital-unit">{{ v.unit }}</div>
+              <div class="vital-label">{{ v.label }}</div>
+            </div>
+          }
+        </div>
+      </app-card>
+
+    </div>
+  </div>
+
+</div>

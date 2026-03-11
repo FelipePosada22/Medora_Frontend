@@ -1,0 +1,90 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Nueva Cita</h1>
+      <p class="page__subtitle">Programa una cita para un paciente</p>
+    </div>
+    <app-button variant="secondary" size="sm" [routerLink]="['/appointments']">← Volver</app-button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+
+      <!-- Patient + Service -->
+      <app-card>
+        <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">Información de la cita</p>
+        <div class="form-grid">
+          <div class="form-field">
+            <app-input
+              label="Paciente"
+              placeholder="Buscar paciente por nombre..."
+              formControlName="patientSearch" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Tipo de servicio</label>
+            <select class="form-select" formControlName="serviceType">
+              <option value="" disabled>Seleccionar servicio</option>
+              @for (s of serviceTypes; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Profesional</label>
+            <select class="form-select" formControlName="professional">
+              <option value="" disabled>Seleccionar profesional</option>
+              @for (p of professionals; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Fecha</label>
+            <input class="form-select" type="date" formControlName="date" />
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Time slots -->
+      <app-card>
+        <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">
+          Horario disponible
+          @if (selectedSlot()) {
+            <span style="font-weight:var(--font-weight-normal); color:var(--color-primary-600); margin-left:var(--space-2)">
+              · {{ selectedSlot() }} seleccionado
+            </span>
+          }
+        </p>
+        <div class="time-slots-grid">
+          @for (slot of timeSlots; track slot.time) {
+            <button
+              type="button"
+              class="time-slot-btn"
+              [class.time-slot-btn--selected]="selectedSlot() === slot.time"
+              [disabled]="!slot.available"
+              (click)="selectSlot(slot.time)">
+              {{ slot.time }}
+            </button>
+          }
+        </div>
+      </app-card>
+
+      <!-- Notes -->
+      <app-card>
+        <div class="form-field">
+          <label class="form-label">Notas (opcional)</label>
+          <textarea class="form-textarea" formControlName="notes" placeholder="Observaciones o indicaciones previas..."></textarea>
+        </div>
+      </app-card>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <app-button variant="secondary" type="button" [routerLink]="['/appointments']">Cancelar</app-button>
+        <app-button variant="primary" type="submit" [loading]="isSubmitting()">Confirmar cita</app-button>
+      </div>
+
+    </div>
+  </form>
+
+</div>

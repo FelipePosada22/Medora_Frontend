@@ -1,0 +1,169 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Configuración</h1>
+      <p class="page__subtitle">Gestión de la clínica, usuarios y preferencias</p>
+    </div>
+  </div>
+
+  <div class="settings-layout">
+
+    <!-- Side nav -->
+    <app-card padding="sm">
+      <nav class="settings-nav">
+        @for (tab of tabs; track tab.value) {
+          <button
+            class="settings-nav-btn"
+            [class.settings-nav-btn--active]="activeTab() === tab.value"
+            (click)="setTab(tab.value)">
+            <span>{{ tab.icon }}</span>
+            {{ tab.label }}
+          </button>
+        }
+      </nav>
+    </app-card>
+
+    <!-- Content -->
+    <div>
+
+      <!-- Clinic tab -->
+      @if (activeTab() === 'clinic') {
+        <app-card>
+          <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">Información de la clínica</p>
+
+          @if (savedOk()) {
+            <div class="alert alert--success" style="margin-bottom:var(--space-4)">Cambios guardados correctamente.</div>
+          }
+
+          <form [formGroup]="clinicForm" (ngSubmit)="saveClinic()">
+            <div class="form-grid" style="margin-bottom:var(--space-4)">
+              <app-input label="Nombre de la clínica" formControlName="name" />
+              <app-input label="Teléfono"              formControlName="phone" />
+              <app-input label="Email"                 formControlName="email" type="email" />
+              <app-input label="Dirección"             formControlName="address" />
+              <div class="form-field">
+                <label class="form-label">Zona horaria</label>
+                <select class="form-select" formControlName="timezone">
+                  <option value="America/New_York">America/New_York (EST)</option>
+                  <option value="America/Chicago">America/Chicago (CST)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                  <option value="America/Bogota">America/Bogota (COT)</option>
+                  <option value="America/Mexico_City">America/Mexico_City (CST)</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Moneda</label>
+                <select class="form-select" formControlName="currency">
+                  <option value="USD">USD — Dólar americano</option>
+                  <option value="COP">COP — Peso colombiano</option>
+                  <option value="MXN">MXN — Peso mexicano</option>
+                  <option value="EUR">EUR — Euro</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end">
+              <app-button variant="primary" type="submit" [loading]="isSaving()">Guardar cambios</app-button>
+            </div>
+          </form>
+        </app-card>
+      }
+
+      <!-- Users tab -->
+      @if (activeTab() === 'users') {
+        <app-card>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4)">
+            <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold)">Usuarios del sistema</p>
+            <app-button variant="primary" size="sm">+ Invitar usuario</app-button>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users; track user.email) {
+                <tr>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:var(--space-2)">
+                      <app-avatar [name]="user.name" size="sm" />
+                      {{ user.name }}
+                    </div>
+                  </td>
+                  <td>{{ user.email }}</td>
+                  <td><app-badge [variant]="roleVariant(user.role)">{{ user.role }}</app-badge></td>
+                  <td>
+                    <app-badge [variant]="user.active ? 'success' : 'default'">
+                      {{ user.active ? 'Activo' : 'Inactivo' }}
+                    </app-badge>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <app-button variant="ghost" size="sm">Editar</app-button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </app-card>
+      }
+
+      <!-- Preferences tab -->
+      @if (activeTab() === 'preferences') {
+        <app-card>
+          <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">Preferencias del sistema</p>
+          <div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title">Notificaciones por email</span>
+                <span class="toggle-desc">Recibe confirmaciones y recordatorios por email</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [checked]="preferences().emailNotifications" (change)="togglePref('emailNotifications')" />
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title">Recordatorios por SMS</span>
+                <span class="toggle-desc">Envía SMS automáticos 24h antes de cada cita</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [checked]="preferences().smsReminders" (change)="togglePref('smsReminders')" />
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title">Confirmación automática</span>
+                <span class="toggle-desc">Confirma citas automáticamente al reservar</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [checked]="preferences().autoConfirm" (change)="togglePref('autoConfirm')" />
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title">Autenticación de dos factores</span>
+                <span class="toggle-desc">Requiere 2FA para iniciar sesión</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" [checked]="preferences().twoFactor" (change)="togglePref('twoFactor')" />
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+          </div>
+        </app-card>
+      }
+
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,81 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Tipos de Cita</h1>
+      <p class="page__subtitle">Servicios y tarifas de la clínica</p>
+    </div>
+    <app-button variant="primary" size="sm">+ Nuevo tipo</app-button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats().total }}</div>
+        <div class="stat-card__label">Servicios activos</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats().avgDuration }} min</div>
+        <div class="stat-card__label">Duración promedio</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__value">${{ stats().avgPrice }}</div>
+        <div class="stat-card__label">Precio promedio</div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Table -->
+  <app-card>
+    <div class="page__toolbar" style="margin-bottom: var(--space-4)">
+      <input
+        class="search-input"
+        type="search"
+        placeholder="Buscar servicio..."
+        (input)="onSearch($event)" />
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Servicio</th>
+          <th>ID</th>
+          <th>Duración</th>
+          <th>Precio</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (type of types(); track type.id) {
+          <tr>
+            <td>
+              <span class="color-dot" [style.background]="type.color"></span>
+              <strong>{{ type.name }}</strong>
+            </td>
+            <td>{{ type.id }}</td>
+            <td>{{ type.duration }} min</td>
+            <td>${{ type.price.toFixed(2) }}</td>
+            <td>
+              <app-badge [variant]="type.active ? 'success' : 'default'">
+                {{ type.active ? 'Activo' : 'Inactivo' }}
+              </app-badge>
+            </td>
+            <td>
+              <div class="row-actions">
+                <app-button variant="ghost" size="sm">Editar</app-button>
+                <app-button variant="ghost" size="sm">{{ type.active ? 'Desactivar' : 'Activar' }}</app-button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </app-card>
+
+</div>

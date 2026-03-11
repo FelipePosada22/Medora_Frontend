@@ -1,0 +1,91 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Profesionales</h1>
+      <p class="page__subtitle">Gestión del equipo médico</p>
+    </div>
+    <app-button variant="primary" size="sm">+ Agregar profesional</app-button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats().total }}</div>
+        <div class="stat-card__label">Total profesionales</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats().active }}</div>
+        <div class="stat-card__label">Activos</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats().appts }}</div>
+        <div class="stat-card__label">Citas hoy (total)</div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Filters + Table -->
+  <app-card>
+    <div class="page__toolbar" style="margin-bottom: var(--space-4)">
+      <div class="specialty-filters">
+        @for (s of specialties; track s) {
+          <button
+            class="filter-chip"
+            [class.filter-chip--active]="selectedSpecialty() === s"
+            (click)="selectSpecialty(s)">
+            {{ s }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Profesional</th>
+          <th>ID</th>
+          <th>Especialidad</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Citas hoy</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pro of professionals(); track pro.id) {
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:var(--space-2)">
+                <app-avatar [name]="pro.name" size="sm" />
+                <strong>{{ pro.name }}</strong>
+              </div>
+            </td>
+            <td>{{ pro.id }}</td>
+            <td>{{ pro.specialty }}</td>
+            <td>{{ pro.phone }}</td>
+            <td>{{ pro.email }}</td>
+            <td>{{ pro.appointmentsToday }}</td>
+            <td>
+              <app-badge [variant]="pro.status === 'active' ? 'success' : 'default'">
+                {{ pro.status === 'active' ? 'Activo' : 'Inactivo' }}
+              </app-badge>
+            </td>
+            <td>
+              <div class="row-actions">
+                <app-button variant="ghost" size="sm">Editar</app-button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </app-card>
+
+</div>
