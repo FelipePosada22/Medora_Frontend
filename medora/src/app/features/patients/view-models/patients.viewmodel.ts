@@ -1,35 +1,20 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, startWith, tap, catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PatientsService } from '../services/patients.service';
 import { Patient } from '../models/patient.model';
 
-/**
- * ViewModel for the Patients list page.
- *
- * Responsibilities:
- * - Exposes reactive signals for the template (patients, loading, error, pagination).
- * - Manages search input with debounce.
- * - Handles pagination state.
- * - Delegates data operations to PatientsService.
- *
- * Scoped to PatientsPageComponent via `providers: [PatientsViewModel]`.
- */
 @Injectable()
 export class PatientsViewModel {
   private readonly service = inject(PatientsService);
+  private readonly fb      = inject(FormBuilder);
 
-  // ---------------------------------------------------------------------------
-  // State signals
-  // ---------------------------------------------------------------------------
   readonly patients     = signal<Patient[]>([]);
   readonly isLoading    = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly searchTerm   = signal('');
 
-  // ---------------------------------------------------------------------------
-  // Derived signals
-  // ---------------------------------------------------------------------------
   readonly isEmpty = computed(() => !this.isLoading() && this.patients().length === 0);
 
   readonly filtered = computed(() => {
@@ -42,9 +27,20 @@ export class PatientsViewModel {
     );
   });
 
-  // ---------------------------------------------------------------------------
-  // Load pipeline
-  // ---------------------------------------------------------------------------
+  // Form state
+  readonly showForm  = signal(false);
+  readonly editingId = signal<string | null>(null);
+  readonly formError = signal<string | null>(null);
+  readonly isSaving  = signal(false);
+
+  readonly form = this.fb.nonNullable.group({
+    name:      ['', Validators.required],
+    phone:     ['', Validators.required],
+    email:     ['', [Validators.required, Validators.email]],
+    birthdate: [''],
+    notes:     [''],
+  });
+
   private readonly search$ = new Subject<string>();
 
   constructor() {
@@ -56,7 +52,6 @@ export class PatientsViewModel {
         switchMap(() => {
           this.isLoading.set(true);
           this.errorMessage.set(null);
-
           return this.service.getAll().pipe(
             tap(patients => {
               this.patients.set(patients);
@@ -74,22 +69,60 @@ export class PatientsViewModel {
       .subscribe();
   }
 
-  // ---------------------------------------------------------------------------
-  // Public commands
-  // ---------------------------------------------------------------------------
-
-  /** Triggers a debounced client-side filter. */
   search(term: string): void {
     this.searchTerm.set(term);
     this.search$.next(term);
   }
 
-  /** Reloads the list after a mutation. */
   reload(): void {
     this.search$.next(this.searchTerm());
   }
 
-  /** Removes a patient and refreshes the list. */
+  openCreate(): void {
+    this.editingId.set(null);
+    this.form.reset();
+    this.formError.set(null);
+    this.showForm.set(true);
+  }
+
+  openEdit(patient: Patient): void {
+    this.editingId.set(patient.id);
+    this.form.patchValue({
+      name:      patient.name,
+      phone:     patient.phone,
+      email:     patient.email,
+      birthdate: patient.birthdate ?? '',
+      notes:     patient.notes     ?? '',
+    });
+    this.formError.set(null);
+    this.showForm.set(true);
+  }
+
+  closeForm(): void {
+    this.showForm.set(false);
+    this.formError.set(null);
+  }
+
+  save(): void {
+    if (this.form.invalid) return;
+    this.isSaving.set(true);
+    const raw = this.form.getRawValue();
+    const payload = {
+      name:      raw.name,
+      phone:     raw.phone,
+      email:     raw.email,
+      birthdate: raw.birthdate || null,
+      notes:     raw.notes     || null,
+    };
+    const op$ = this.editingId()
+      ? this.service.update(this.editingId()!, payload)
+      : this.service.create(payload);
+    op$.subscribe({
+      next: () => { this.closeForm(); this.reload(); this.isSaving.set(false); },
+      error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+    });
+  }
+
   remove(id: string): void {
     this.service.remove(id).subscribe({
       next: () => this.reload(),

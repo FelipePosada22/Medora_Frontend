@@ -1,15 +1,13 @@
 <div class="page">
 
-  <!-- Page header -->
   <div class="page__header">
     <div>
       <h2 class="page__title">Pacientes</h2>
       <p class="page__subtitle">{{ vm.filtered().length }} pacientes registrados</p>
     </div>
-    <app-button variant="primary" [routerLink]="['new']">+ Nuevo paciente</app-button>
+    <app-button variant="primary" (click)="vm.openCreate()">+ Nuevo paciente</app-button>
   </div>
 
-  <!-- Search -->
   <div class="page__toolbar">
     <input
       class="search-input"
@@ -21,13 +19,36 @@
     />
   </div>
 
-  <!-- Error -->
   @if (vm.errorMessage()) {
     <div class="alert alert--error" role="alert">{{ vm.errorMessage() }}</div>
   }
 
-  <!-- Table -->
   <app-card padding="none">
+
+    @if (vm.showForm()) {
+      <div class="form-panel" style="margin: var(--space-5); margin-bottom: 0">
+        <h3 class="form-panel__title">{{ vm.editingId() ? 'Editar' : 'Nuevo' }} paciente</h3>
+        @if (vm.formError()) {
+          <div class="alert alert--error">{{ vm.formError() }}</div>
+        }
+        <form [formGroup]="vm.form" (ngSubmit)="vm.save()">
+          <div class="form-grid">
+            <app-input label="Nombre completo" formControlName="name" />
+            <app-input label="Teléfono" formControlName="phone" />
+            <app-input label="Email" formControlName="email" />
+            <app-input label="Fecha de nacimiento" formControlName="birthdate" />
+            <app-input label="Notas" formControlName="notes" />
+          </div>
+          <div class="form-actions">
+            <app-button type="button" variant="ghost" size="sm" (click)="vm.closeForm()">Cancelar</app-button>
+            <app-button type="submit" variant="primary" size="sm" [disabled]="vm.isSaving()">
+              {{ vm.isSaving() ? 'Guardando...' : 'Guardar' }}
+            </app-button>
+          </div>
+        </form>
+      </div>
+    }
+
     @if (vm.isLoading()) {
       <div class="state-placeholder">Cargando...</div>
 
@@ -51,16 +72,13 @@
         <tbody>
           @for (patient of vm.filtered(); track patient.id) {
             <tr>
-              <td>
-                <a [routerLink]="[patient.id]" class="link">{{ patient.name }}</a>
-              </td>
+              <td><strong>{{ patient.name }}</strong></td>
               <td>{{ patient.email }}</td>
               <td>{{ patient.phone }}</td>
               <td>{{ patient.birthdate | date:'dd/MM/yyyy' }}</td>
               <td>
                 <div class="row-actions">
-                  <app-button variant="ghost" size="sm" [routerLink]="[patient.id]">Ver</app-button>
-                  <app-button variant="ghost" size="sm" [routerLink]="[patient.id, 'edit']">Editar</app-button>
+                  <app-button variant="ghost" size="sm" (click)="vm.openEdit(patient)">Editar</app-button>
                   <app-button variant="danger" size="sm" (click)="vm.remove(patient.id)">Eliminar</app-button>
                 </div>
               </td>
@@ -70,6 +88,5 @@
       </table>
     }
   </app-card>
-
 
 </div>

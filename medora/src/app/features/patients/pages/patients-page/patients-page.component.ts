@@ -1,23 +1,45 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 import { PatientsViewModel } from '../../view-models/patients.viewmodel';
-
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
 
-/**
- * Patients list page — container component.
- *
- * Provides and injects PatientsViewModel.
- * Binds signals to the template; no logic lives here.
- */
 @Component({
   selector: 'app-patients-page',
   templateUrl: './patients-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [PatientsViewModel],
-  imports: [RouterLink, DatePipe, ButtonComponent, CardComponent],
+  imports: [DatePipe, ReactiveFormsModule, ButtonComponent, CardComponent, InputComponent],
+  styles: [`
+    .form-panel {
+      background: var(--color-neutral-50);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+    }
+    .form-panel__title {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--space-4);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--color-border);
+    }
+  `],
 })
 export class PatientsPageComponent {
   protected readonly vm = inject(PatientsViewModel);
