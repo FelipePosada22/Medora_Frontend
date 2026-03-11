@@ -1,0 +1,186 @@
+// =============================================================================
+// Design Tokens — Medora SaaS
+// Extraídos directamente del diseño en Figma (archivo M60QbHrYtRinwZQQfzVoyf)
+// =============================================================================
+
+:root {
+  // ---------------------------------------------------------------------------
+  // Brand — Violet #6324eb (color principal extraído del Figma)
+  // ---------------------------------------------------------------------------
+  --color-primary-50:  #f5f0fe;
+  --color-primary-100: #ede0fd;
+  --color-primary-200: #d9bffb;
+  --color-primary-300: #bf8ff8;
+  --color-primary-400: #a05ef3;
+  --color-primary-500: #7c3aed;
+  --color-primary-600: #6324eb;
+  --color-primary-700: #5118c4;
+  --color-primary-800: #40149e;
+  --color-primary-900: #2e0f78;
+
+  // ---------------------------------------------------------------------------
+  // Accent — Emerald
+  // ---------------------------------------------------------------------------
+  --color-accent-50:  #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+
+  // ---------------------------------------------------------------------------
+  // Semantic
+  // ---------------------------------------------------------------------------
+  --color-success-50:  #dcfce7;
+  --color-success-500: #22c55e;
+  --color-success-600: #15803d;
+  --color-success-700: #065f46;
+
+  --color-warning-50:  #fef3c7;
+  --color-warning-500: #f59e0b;
+  --color-warning-700: #92400e;
+
+  --color-error-50:  #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+
+  --color-info-50:  #eff6ff;
+  --color-info-500: #3b82f6;
+  --color-info-700: #1d4ed8;
+
+  // ---------------------------------------------------------------------------
+  // Appointment Status Colors
+  // ---------------------------------------------------------------------------
+  --color-status-scheduled:  #3b82f6;
+  --color-status-confirmed:  #059669;
+  --color-status-cancelled:  #dc2626;
+  --color-status-completed:  #6324eb;
+  --color-status-no-show:    #f59e0b;
+
+  // ---------------------------------------------------------------------------
+  // Neutrals
+  // ---------------------------------------------------------------------------
+  --color-neutral-0:   #ffffff;
+  --color-neutral-50:  #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+
+  // ---------------------------------------------------------------------------
+  // Surface — sidebar BLANCO, fondo de página #f6f6f8 (del Figma)
+  // ---------------------------------------------------------------------------
+  --color-surface:         #ffffff;
+  --color-surface-subtle:  #f6f6f8;
+  --color-surface-raised:  #ffffff;
+  --color-surface-overlay: rgba(15, 23, 42, 0.5);
+  --color-sidebar:         #ffffff;
+  --color-sidebar-border:  #e2e8f0;
+  --color-sidebar-hover:   #f5f0fe;
+
+  // ---------------------------------------------------------------------------
+  // Text
+  // ---------------------------------------------------------------------------
+  --color-text-primary:   #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted:     #64748b;
+  --color-text-tertiary:  #94a3b8;
+  --color-text-inverse:   #ffffff;
+  --color-text-brand:     #6324eb;
+
+  // ---------------------------------------------------------------------------
+  // Border
+  // ---------------------------------------------------------------------------
+  --color-border:        #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-border-focus:  #6324eb;
+
+  // ---------------------------------------------------------------------------
+  // Typography — Inter
+  // ---------------------------------------------------------------------------
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --font-size-xs:   0.625rem;  // 10px
+  --font-size-sm:   0.75rem;   // 12px
+  --font-size-base: 0.875rem;  // 14px
+  --font-size-lg:   1rem;      // 16px
+  --font-size-xl:   1.125rem;  // 18px
+  --font-size-2xl:  1.25rem;   // 20px
+  --font-size-3xl:  1.5rem;    // 24px
+  --font-size-4xl:  1.875rem;  // 30px
+  --font-size-5xl:  2.25rem;   // 36px
+
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  --line-height-tight:  1.25;
+  --line-height-normal: 1.5;
+  --line-height-loose:  1.75;
+
+  // ---------------------------------------------------------------------------
+  // Spacing (8pt grid)
+  // ---------------------------------------------------------------------------
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  // ---------------------------------------------------------------------------
+  // Border Radius (cornerRadius=8 en Figma)
+  // ---------------------------------------------------------------------------
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-2xl:  1.5rem;
+  --radius-full: 9999px;
+
+  // ---------------------------------------------------------------------------
+  // Shadows
+  // ---------------------------------------------------------------------------
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  // ---------------------------------------------------------------------------
+  // Layout (sidebar 256px, header 64px — exacto del Figma)
+  // ---------------------------------------------------------------------------
+  --sidebar-width:           256px;
+  --sidebar-collapsed-width: 64px;
+  --header-height:           64px;
+  --content-max-width:       1280px;
+
+  // ---------------------------------------------------------------------------
+  // Transitions
+  // ---------------------------------------------------------------------------
+  --transition-fast:   150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow:   300ms ease;
+
+  // ---------------------------------------------------------------------------
+  // Z-index
+  // ---------------------------------------------------------------------------
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+}
