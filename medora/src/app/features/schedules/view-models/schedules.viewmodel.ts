@@ -142,7 +142,7 @@ export class SchedulesViewModel {
     this.schedulesSvc
       .create({
         professionalId: raw.professionalId,
-        dayOfWeek:      raw.dayOfWeek as DayOfWeek,
+        dayOfWeek:      Number(raw.dayOfWeek) as DayOfWeek,
         startTime:      raw.startTime,
         endTime:        raw.endTime,
       })
