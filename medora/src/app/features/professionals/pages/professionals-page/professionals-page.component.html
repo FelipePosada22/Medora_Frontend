@@ -12,80 +12,68 @@
   <div class="stats-grid">
     <app-card padding="none">
       <div class="stat-card">
-        <div class="stat-card__value">{{ stats().total }}</div>
+        <div class="stat-card__value">{{ vm.stats().total }}</div>
         <div class="stat-card__label">Total profesionales</div>
-      </div>
-    </app-card>
-    <app-card padding="none">
-      <div class="stat-card">
-        <div class="stat-card__value">{{ stats().active }}</div>
-        <div class="stat-card__label">Activos</div>
-      </div>
-    </app-card>
-    <app-card padding="none">
-      <div class="stat-card">
-        <div class="stat-card__value">{{ stats().appts }}</div>
-        <div class="stat-card__label">Citas hoy (total)</div>
       </div>
     </app-card>
   </div>
 
   <!-- Filters + Table -->
   <app-card>
+    @if (vm.errorMessage()) {
+      <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+    }
+
     <div class="page__toolbar" style="margin-bottom: var(--space-4)">
       <div class="specialty-filters">
-        @for (s of specialties; track s) {
+        @for (s of vm.specialties(); track s) {
           <button
             class="filter-chip"
-            [class.filter-chip--active]="selectedSpecialty() === s"
-            (click)="selectSpecialty(s)">
+            [class.filter-chip--active]="vm.selectedSpecialty() === s"
+            (click)="vm.selectSpecialty(s)">
             {{ s }}
           </button>
         }
       </div>
     </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Profesional</th>
-          <th>ID</th>
-          <th>Especialidad</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-          <th>Citas hoy</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (pro of professionals(); track pro.id) {
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando profesionales...</div>
+    } @else if (vm.isEmpty()) {
+      <div class="state-placeholder">No hay profesionales registrados.</div>
+    } @else {
+      <table class="table">
+        <thead>
           <tr>
-            <td>
-              <div style="display:flex; align-items:center; gap:var(--space-2)">
-                <app-avatar [name]="pro.name" size="sm" />
-                <strong>{{ pro.name }}</strong>
-              </div>
-            </td>
-            <td>{{ pro.id }}</td>
-            <td>{{ pro.specialty }}</td>
-            <td>{{ pro.phone }}</td>
-            <td>{{ pro.email }}</td>
-            <td>{{ pro.appointmentsToday }}</td>
-            <td>
-              <app-badge [variant]="pro.status === 'active' ? 'success' : 'default'">
-                {{ pro.status === 'active' ? 'Activo' : 'Inactivo' }}
-              </app-badge>
-            </td>
-            <td>
-              <div class="row-actions">
-                <app-button variant="ghost" size="sm">Editar</app-button>
-              </div>
-            </td>
+            <th>Profesional</th>
+            <th>Especialidad</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th></th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (pro of vm.filtered(); track pro.id) {
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:var(--space-2)">
+                  <app-avatar [name]="pro.name" size="sm" />
+                  <strong>{{ pro.name }}</strong>
+                </div>
+              </td>
+              <td>{{ pro.specialty }}</td>
+              <td>{{ pro.phone }}</td>
+              <td>{{ pro.email }}</td>
+              <td>
+                <div class="row-actions">
+                  <app-button variant="ghost" size="sm">Editar</app-button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
   </app-card>
 
 </div>
