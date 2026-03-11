@@ -5,7 +5,7 @@
       <h1 class="page__title">Tipos de Cita</h1>
       <p class="page__subtitle">Servicios y tarifas de la clínica</p>
     </div>
-    <app-button variant="primary" size="sm">+ Nuevo tipo</app-button>
+    <app-button variant="primary" size="sm" (click)="vm.openCreate()">+ Nuevo tipo</app-button>
   </div>
 
   <!-- Stats -->
@@ -34,6 +34,28 @@
   <app-card>
     @if (vm.errorMessage()) {
       <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+    }
+
+    @if (vm.showForm()) {
+      <div class="form-panel">
+        <h3 class="form-panel__title">{{ vm.editingId() ? 'Editar' : 'Nuevo' }} tipo de cita</h3>
+        @if (vm.formError()) {
+          <div class="alert alert--error">{{ vm.formError() }}</div>
+        }
+        <form [formGroup]="vm.form" (ngSubmit)="vm.save()">
+          <div class="form-grid">
+            <app-input label="Nombre del servicio" formControlName="name" />
+            <app-input label="Duración (minutos)" formControlName="durationMinutes" />
+            <app-input label="Precio" formControlName="price" />
+          </div>
+          <div class="form-actions">
+            <app-button type="button" variant="ghost" size="sm" (click)="vm.closeForm()">Cancelar</app-button>
+            <app-button type="submit" variant="primary" size="sm" [disabled]="vm.isSaving()">
+              {{ vm.isSaving() ? 'Guardando...' : 'Guardar' }}
+            </app-button>
+          </div>
+        </form>
+      </div>
     }
 
     <div class="page__toolbar" style="margin-bottom: var(--space-4)">
@@ -66,7 +88,8 @@
               <td>${{ type.price.toFixed(2) }}</td>
               <td>
                 <div class="row-actions">
-                  <app-button variant="ghost" size="sm">Editar</app-button>
+                  <app-button variant="ghost" size="sm" (click)="vm.openEdit(type)">Editar</app-button>
+                  <app-button variant="danger" size="sm" (click)="vm.remove(type.id)">Eliminar</app-button>
                 </div>
               </td>
             </tr>

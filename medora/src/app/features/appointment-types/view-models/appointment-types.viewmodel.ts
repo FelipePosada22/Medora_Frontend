@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { Subject, switchMap, startWith, tap, catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppointmentTypesService } from '../services/appointment-types.service';
@@ -7,11 +8,24 @@ import { AppointmentType } from '../models/appointment-type.model';
 @Injectable()
 export class AppointmentTypesViewModel {
   private readonly service = inject(AppointmentTypesService);
+  private readonly fb      = inject(FormBuilder);
 
   readonly types        = signal<AppointmentType[]>([]);
   readonly isLoading    = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly searchTerm   = signal('');
+
+  // Form state
+  readonly showForm  = signal(false);
+  readonly editingId = signal<string | null>(null);
+  readonly formError = signal<string | null>(null);
+  readonly isSaving  = signal(false);
+
+  readonly form = this.fb.nonNullable.group({
+    name:            ['', Validators.required],
+    durationMinutes: [30, [Validators.required, Validators.min(5)]],
+    price:           [0,  [Validators.required, Validators.min(0)]],
+  });
 
   readonly filtered = computed(() => {
     const q = this.searchTerm().toLowerCase();
@@ -61,5 +75,48 @@ export class AppointmentTypesViewModel {
 
   reload(): void {
     this.load$.next();
+  }
+
+  openCreate(): void {
+    this.editingId.set(null);
+    this.form.reset({ name: '', durationMinutes: 30, price: 0 });
+    this.showForm.set(true);
+    this.formError.set(null);
+  }
+
+  openEdit(item: AppointmentType): void {
+    this.editingId.set(item.id);
+    this.form.patchValue({
+      name:            item.name,
+      durationMinutes: item.durationMinutes,
+      price:           item.price,
+    });
+    this.showForm.set(true);
+    this.formError.set(null);
+  }
+
+  closeForm(): void {
+    this.showForm.set(false);
+    this.formError.set(null);
+  }
+
+  save(): void {
+    if (this.form.invalid) return;
+    this.isSaving.set(true);
+    const payload = this.form.getRawValue();
+    const op$ = this.editingId()
+      ? this.service.update(this.editingId()!, payload)
+      : this.service.create(payload);
+    op$.subscribe({
+      next: () => { this.closeForm(); this.reload(); this.isSaving.set(false); },
+      error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+    });
+  }
+
+  remove(id: string): void {
+    this.service.remove(id).subscribe({
+      next: () => this.reload(),
+      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+    });
   }
 }
