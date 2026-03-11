@@ -1,0 +1,47 @@
+<aside class="sidebar" [class.sidebar--collapsed]="isCollapsed()">
+
+  <!-- Brand -->
+  <div class="sidebar__brand">
+    <span class="sidebar__logo">M</span>
+    @if (!isCollapsed()) {
+      <div>
+        <span class="sidebar__brand-name">Medora</span>
+        <span class="sidebar__brand-sub">Clinical SaaS</span>
+      </div>
+    }
+    <button class="sidebar__toggle" (click)="toggleCollapse()" aria-label="Toggle sidebar">
+      <span>{{ isCollapsed() ? '›' : '‹' }}</span>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar__nav" aria-label="Main navigation">
+    @for (item of navItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="sidebar__link--active"
+        class="sidebar__link"
+        [title]="isCollapsed() ? item.label : ''"
+      >
+        <span class="sidebar__link-icon icon">{{ item.icon }}</span>
+        @if (!isCollapsed()) {
+          <span class="sidebar__link-label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- User -->
+  @if (user()) {
+    <div class="sidebar__user">
+      <app-avatar [name]="user()!.name" size="sm" />
+      @if (!isCollapsed()) {
+        <div class="sidebar__user-info">
+          <span class="sidebar__user-name">{{ user()!.name }}</span>
+          <span class="sidebar__user-role">{{ user()!.role }}</span>
+        </div>
+      }
+    </div>
+  }
+
+</aside>

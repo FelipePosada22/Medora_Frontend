@@ -1,0 +1,36 @@
+<div class="login-page">
+
+  <!-- Left panel — branding -->
+  <div class="login-page__brand" aria-hidden="true">
+    <div class="login-page__brand-content">
+      <div class="login-page__logo">M</div>
+      <h1 class="login-page__brand-name">Medora</h1>
+      <p class="login-page__tagline">Gestión clínica simple y eficiente.</p>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="login-page__form-panel">
+    <div class="login-page__form-wrapper">
+
+      <header class="login-page__header">
+        <h2 class="login-page__title">Bienvenido</h2>
+        <p class="login-page__subtitle">Ingresa a tu cuenta para continuar.</p>
+      </header>
+
+      @if (vm.errorMessage()) {
+        <div class="login-page__error" role="alert">
+          {{ vm.errorMessage() }}
+        </div>
+      }
+
+      <app-login-form
+        [form]="vm.form"
+        [isLoading]="vm.isLoading()"
+        (submitted)="vm.submit()"
+      />
+
+    </div>
+  </div>
+
+</div>

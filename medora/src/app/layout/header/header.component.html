@@ -1,0 +1,12 @@
+<header class="header">
+  <h1 class="header__title">{{ pageTitle() }}</h1>
+
+  <div class="header__actions">
+    @if (user()) {
+      <button class="header__user-btn" (click)="logout()" aria-label="Cerrar sesión">
+        <app-avatar [name]="user()!.name" size="sm" />
+        <span class="header__user-name">{{ user()!.name }}</span>
+      </button>
+    }
+  </div>
+</header>

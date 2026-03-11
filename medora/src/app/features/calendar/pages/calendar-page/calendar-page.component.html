@@ -1,0 +1,63 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Agenda Médica</h1>
+      <p class="page__subtitle">Vista semanal de citas y disponibilidad</p>
+    </div>
+    <app-button variant="primary" size="sm" [routerLink]="['/appointments/new']">+ Agendar cita</app-button>
+  </div>
+
+  <app-card>
+    <!-- Toolbar -->
+    <div class="calendar-toolbar" style="margin-bottom: var(--space-4)">
+      <div class="week-nav">
+        <button class="nav-btn" (click)="prevWeek()">‹</button>
+        <span class="week-label">{{ weekLabel() }}</span>
+        <button class="nav-btn" (click)="nextWeek()">›</button>
+        <app-button variant="secondary" size="sm" (click)="goToday()">Hoy</app-button>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn" [class.view-btn--active]="activeView() === 'day'"   (click)="setView('day')">Día</button>
+        <button class="view-btn" [class.view-btn--active]="activeView() === 'week'"  (click)="setView('week')">Semana</button>
+        <button class="view-btn" [class.view-btn--active]="activeView() === 'month'" (click)="setView('month')">Mes</button>
+      </div>
+    </div>
+
+    <!-- Calendar grid -->
+    <div class="calendar-grid">
+      <!-- Corner -->
+      <div class="cal-corner"></div>
+      <!-- Day headers -->
+      @for (day of weekDays(); track day.index) {
+        <div class="cal-day-header" [class.cal-day-header--today]="day.isToday">
+          {{ day.label }}
+        </div>
+      }
+
+      <!-- Time rows -->
+      @for (slot of timeSlots; track slot.hour) {
+        <div class="cal-time">{{ slot.time }}</div>
+        @for (day of weekDays(); track day.index) {
+          <div class="cal-cell">
+            @for (appt of getSlotAppointments(day.index, slot.hour); track appt.id) {
+              <div class="appt-chip" [class]="'appt-chip appt-chip--' + appt.status" [title]="appt.patient + ' · ' + appt.type">
+                {{ appt.patient }}
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Legend -->
+    <div class="legend" style="margin-top: var(--space-4)">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--color-status-scheduled)"></span> Programada</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--color-status-confirmed)"></span> Confirmada</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--color-status-completed)"></span> Completada</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--color-status-cancelled)"></span> Cancelada</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--color-status-no-show)"></span> No se presentó</div>
+    </div>
+  </app-card>
+
+</div>

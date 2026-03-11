@@ -1,0 +1,78 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Citas</h1>
+      <p class="page__subtitle">Gestión de todas las citas médicas</p>
+    </div>
+    <app-button variant="primary" size="sm" [routerLink]="['/appointments/new']">+ Nueva cita</app-button>
+  </div>
+
+  <app-card>
+    <!-- Search -->
+    <div class="page__toolbar" style="margin-bottom: var(--space-4)">
+      <input
+        class="search-input"
+        type="search"
+        placeholder="Buscar por paciente o doctor..."
+        (input)="onSearch($event)" />
+    </div>
+
+    <!-- Status tabs -->
+    <div class="status-tabs">
+      @for (tab of tabs; track tab.value) {
+        <button
+          class="status-tab"
+          [class.status-tab--active]="activeFilter() === tab.value"
+          (click)="setFilter(tab.value)">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Doctor</th>
+          <th>Tipo</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (appt of appointments(); track appt.id) {
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:var(--space-2)">
+                <app-avatar [name]="appt.patient" size="xs" />
+                {{ appt.patient }}
+              </div>
+            </td>
+            <td>{{ appt.doctor }}</td>
+            <td>{{ appt.type }}</td>
+            <td>{{ appt.date | date:'dd/MM/yyyy' }}</td>
+            <td>{{ appt.date | date:'HH:mm' }}</td>
+            <td><app-badge [variant]="appt.status">{{ appt.status }}</app-badge></td>
+            <td>
+              <div class="row-actions">
+                <app-button variant="ghost" size="sm">Ver</app-button>
+                <app-button variant="ghost" size="sm">Editar</app-button>
+              </div>
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="7">
+              <div class="state-placeholder">Sin citas para este filtro</div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </app-card>
+
+</div>

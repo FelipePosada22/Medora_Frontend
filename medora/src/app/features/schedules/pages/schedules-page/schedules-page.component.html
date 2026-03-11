@@ -1,0 +1,46 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Horarios</h1>
+      <p class="page__subtitle">Configura los horarios de trabajo del equipo médico</p>
+    </div>
+    <app-button variant="primary" size="sm">Guardar cambios</app-button>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+    @for (pro of schedules; track pro.id) {
+      <app-card>
+        <div class="schedule-card">
+          <div class="schedule-card__header">
+            <app-avatar [name]="pro.name" size="md" />
+            <div class="schedule-card__info">
+              <div class="schedule-card__name">{{ pro.name }}</div>
+              <div class="schedule-card__specialty">{{ pro.specialty }}</div>
+            </div>
+            <app-badge variant="success">Activo</app-badge>
+          </div>
+
+          <div class="days-grid">
+            @for (day of pro.days; track day.day) {
+              <div class="day-chip" [class.day-chip--active]="day.enabled" [class.day-chip--inactive]="!day.enabled">
+                <span class="day-chip__name">{{ day.day }}</span>
+                @if (day.enabled) {
+                  <span class="day-chip__hours">{{ day.start }}</span>
+                  <span class="day-chip__hours">{{ day.end }}</span>
+                } @else {
+                  <span class="day-chip__hours">Libre</span>
+                }
+              </div>
+            }
+          </div>
+
+          <div style="display:flex; justify-content:flex-end">
+            <app-button variant="ghost" size="sm">Editar horario</app-button>
+          </div>
+        </div>
+      </app-card>
+    }
+  </div>
+
+</div>

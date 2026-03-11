@@ -1,0 +1,75 @@
+<div class="page">
+
+  <!-- Page header -->
+  <div class="page__header">
+    <div>
+      <h2 class="page__title">Pacientes</h2>
+      <p class="page__subtitle">{{ vm.filtered().length }} pacientes registrados</p>
+    </div>
+    <app-button variant="primary" [routerLink]="['new']">+ Nuevo paciente</app-button>
+  </div>
+
+  <!-- Search -->
+  <div class="page__toolbar">
+    <input
+      class="search-input"
+      type="search"
+      placeholder="Buscar por nombre, email o teléfono..."
+      [value]="vm.searchTerm()"
+      (input)="vm.search($any($event.target).value)"
+      aria-label="Buscar pacientes"
+    />
+  </div>
+
+  <!-- Error -->
+  @if (vm.errorMessage()) {
+    <div class="alert alert--error" role="alert">{{ vm.errorMessage() }}</div>
+  }
+
+  <!-- Table -->
+  <app-card padding="none">
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando...</div>
+
+    } @else if (vm.isEmpty()) {
+      <div class="state-placeholder">
+        <p>No se encontraron pacientes.</p>
+        <app-button variant="secondary" (click)="vm.search('')">Limpiar búsqueda</app-button>
+      </div>
+
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Fecha de nacimiento</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (patient of vm.filtered(); track patient.id) {
+            <tr>
+              <td>
+                <a [routerLink]="[patient.id]" class="link">{{ patient.name }}</a>
+              </td>
+              <td>{{ patient.email }}</td>
+              <td>{{ patient.phone }}</td>
+              <td>{{ patient.birthdate | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <div class="row-actions">
+                  <app-button variant="ghost" size="sm" [routerLink]="[patient.id]">Ver</app-button>
+                  <app-button variant="ghost" size="sm" [routerLink]="[patient.id, 'edit']">Editar</app-button>
+                  <app-button variant="danger" size="sm" (click)="vm.remove(patient.id)">Eliminar</app-button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </app-card>
+
+
+</div>
