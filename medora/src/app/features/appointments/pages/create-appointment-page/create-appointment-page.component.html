@@ -8,83 +8,85 @@
     <app-button variant="secondary" size="sm" [routerLink]="['/appointments']">← Volver</app-button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+  @if (vm.errorMessage()) {
+    <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+  }
 
-      <!-- Patient + Service -->
-      <app-card>
-        <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">Información de la cita</p>
-        <div class="form-grid">
-          <div class="form-field">
-            <app-input
-              label="Paciente"
-              placeholder="Buscar paciente por nombre..."
-              formControlName="patientSearch" />
+  @if (vm.isLoading()) {
+    <div class="state-placeholder">Cargando datos...</div>
+  } @else {
+    <form [formGroup]="vm.form" (ngSubmit)="vm.submit()">
+      <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+
+        <!-- Main fields -->
+        <app-card>
+          <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">Información de la cita</p>
+          <div class="form-grid">
+
+            <div class="form-field">
+              <label class="form-label">Paciente</label>
+              <select class="form-select" formControlName="patientId">
+                <option value="" disabled>Seleccionar paciente</option>
+                @for (p of vm.patients(); track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Tipo de servicio</label>
+              <select class="form-select" formControlName="appointmentTypeId">
+                <option value="" disabled>Seleccionar servicio</option>
+                @for (t of vm.appointmentTypes(); track t.id) {
+                  <option [value]="t.id">{{ t.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Profesional</label>
+              <select class="form-select" formControlName="professionalId">
+                <option value="" disabled>Seleccionar profesional</option>
+                @for (p of vm.professionals(); track p.id) {
+                  <option [value]="p.id">{{ p.name }} — {{ p.specialty }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Fecha</label>
+              <input class="form-select" type="date" formControlName="date" />
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Hora de inicio</label>
+              <input class="form-select" type="time" formControlName="startTime" />
+            </div>
+
+            <div class="form-field">
+              <label class="form-label">Hora de fin</label>
+              <input class="form-select" type="time" formControlName="endTime" />
+            </div>
+
           </div>
+        </app-card>
+
+        <!-- Notes -->
+        <app-card>
           <div class="form-field">
-            <label class="form-label">Tipo de servicio</label>
-            <select class="form-select" formControlName="serviceType">
-              <option value="" disabled>Seleccionar servicio</option>
-              @for (s of serviceTypes; track s) {
-                <option [value]="s">{{ s }}</option>
-              }
-            </select>
+            <label class="form-label">Notas (opcional)</label>
+            <textarea class="form-textarea" formControlName="notes" placeholder="Observaciones o indicaciones previas..."></textarea>
           </div>
-          <div class="form-field">
-            <label class="form-label">Profesional</label>
-            <select class="form-select" formControlName="professional">
-              <option value="" disabled>Seleccionar profesional</option>
-              @for (p of professionals; track p) {
-                <option [value]="p">{{ p }}</option>
-              }
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Fecha</label>
-            <input class="form-select" type="date" formControlName="date" />
-          </div>
+        </app-card>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <app-button variant="secondary" type="button" [routerLink]="['/appointments']">Cancelar</app-button>
+          <app-button variant="primary" type="submit" [loading]="vm.isSubmitting()">Confirmar cita</app-button>
         </div>
-      </app-card>
 
-      <!-- Time slots -->
-      <app-card>
-        <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">
-          Horario disponible
-          @if (selectedSlot()) {
-            <span style="font-weight:var(--font-weight-normal); color:var(--color-primary-600); margin-left:var(--space-2)">
-              · {{ selectedSlot() }} seleccionado
-            </span>
-          }
-        </p>
-        <div class="time-slots-grid">
-          @for (slot of timeSlots; track slot.time) {
-            <button
-              type="button"
-              class="time-slot-btn"
-              [class.time-slot-btn--selected]="selectedSlot() === slot.time"
-              [disabled]="!slot.available"
-              (click)="selectSlot(slot.time)">
-              {{ slot.time }}
-            </button>
-          }
-        </div>
-      </app-card>
-
-      <!-- Notes -->
-      <app-card>
-        <div class="form-field">
-          <label class="form-label">Notas (opcional)</label>
-          <textarea class="form-textarea" formControlName="notes" placeholder="Observaciones o indicaciones previas..."></textarea>
-        </div>
-      </app-card>
-
-      <!-- Actions -->
-      <div class="form-actions">
-        <app-button variant="secondary" type="button" [routerLink]="['/appointments']">Cancelar</app-button>
-        <app-button variant="primary" type="submit" [loading]="isSubmitting()">Confirmar cita</app-button>
       </div>
-
-    </div>
-  </form>
+    </form>
+  }
 
 </div>
