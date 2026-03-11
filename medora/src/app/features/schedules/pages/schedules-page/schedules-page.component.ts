@@ -1,32 +1,20 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CardComponent } from '../../../../shared/components/card/card.component';
-import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
-
-interface DaySchedule {
-  day: string;
-  enabled: boolean;
-  start: string;
-  end: string;
-}
-
-interface ProfessionalSchedule {
-  id: string;
-  name: string;
-  specialty: string;
-  days: DaySchedule[];
-}
+import { SchedulesViewModel } from '../../view-models/schedules.viewmodel';
 
 /**
  * Work schedules configuration page.
- * Displays and edits working hours per professional.
+ * Displays working hours per professional loaded from the API.
  */
 @Component({
   selector: 'app-schedules-page',
   templateUrl: './schedules-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, BadgeComponent, ButtonComponent, AvatarComponent],
+  providers: [SchedulesViewModel],
+  imports: [CardComponent, ButtonComponent, AvatarComponent],
   styles: [`
     .schedule-card {
       display: flex;
@@ -80,44 +68,5 @@ interface ProfessionalSchedule {
   `],
 })
 export class SchedulesPageComponent {
-  protected readonly selectedPro = signal<string | null>(null);
-
-  protected readonly schedules: ProfessionalSchedule[] = [
-    {
-      id: 'P-001', name: 'Dr. Julian Smith', specialty: 'Odontología General',
-      days: [
-        { day: 'Lun', enabled: true,  start: '08:00', end: '17:00' },
-        { day: 'Mar', enabled: true,  start: '08:00', end: '17:00' },
-        { day: 'Mié', enabled: true,  start: '08:00', end: '17:00' },
-        { day: 'Jue', enabled: true,  start: '08:00', end: '17:00' },
-        { day: 'Vie', enabled: true,  start: '08:00', end: '14:00' },
-        { day: 'Sáb', enabled: false, start: '09:00', end: '13:00' },
-        { day: 'Dom', enabled: false, start: '09:00', end: '13:00' },
-      ],
-    },
-    {
-      id: 'P-002', name: 'Dra. Elena Lopez', specialty: 'Ortodoncia',
-      days: [
-        { day: 'Lun', enabled: true,  start: '09:00', end: '18:00' },
-        { day: 'Mar', enabled: false, start: '09:00', end: '18:00' },
-        { day: 'Mié', enabled: true,  start: '09:00', end: '18:00' },
-        { day: 'Jue', enabled: false, start: '09:00', end: '18:00' },
-        { day: 'Vie', enabled: true,  start: '09:00', end: '15:00' },
-        { day: 'Sáb', enabled: true,  start: '09:00', end: '13:00' },
-        { day: 'Dom', enabled: false, start: '09:00', end: '13:00' },
-      ],
-    },
-    {
-      id: 'P-004', name: 'Dra. Sara Núñez', specialty: 'Endodoncia',
-      days: [
-        { day: 'Lun', enabled: true,  start: '10:00', end: '19:00' },
-        { day: 'Mar', enabled: true,  start: '10:00', end: '19:00' },
-        { day: 'Mié', enabled: false, start: '10:00', end: '19:00' },
-        { day: 'Jue', enabled: true,  start: '10:00', end: '19:00' },
-        { day: 'Vie', enabled: true,  start: '10:00', end: '16:00' },
-        { day: 'Sáb', enabled: false, start: '10:00', end: '13:00' },
-        { day: 'Dom', enabled: false, start: '10:00', end: '13:00' },
-      ],
-    },
-  ];
+  protected readonly vm = inject(SchedulesViewModel);
 }
