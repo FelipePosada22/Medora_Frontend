@@ -40,7 +40,7 @@ export class PatientsApi {
   }
 
   update(id: string, payload: Partial<PatientPayload>): Observable<PatientDto> {
-    return this.http.patch<PatientDto>(`${this.baseUrl}/${id}`, payload);
+    return this.http.put<PatientDto>(`${this.baseUrl}/${id}`, payload);
   }
 
   remove(id: string): Observable<void> {
