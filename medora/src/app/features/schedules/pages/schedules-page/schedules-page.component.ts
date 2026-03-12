@@ -3,7 +3,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
 import { SchedulesViewModel } from '../../view-models/schedules.viewmodel';
 
 /**
@@ -15,7 +14,7 @@ import { SchedulesViewModel } from '../../view-models/schedules.viewmodel';
   templateUrl: './schedules-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [SchedulesViewModel],
-  imports: [CardComponent, ButtonComponent, AvatarComponent, InputComponent, ReactiveFormsModule],
+  imports: [CardComponent, ButtonComponent, AvatarComponent, ReactiveFormsModule],
   styles: [`
     .schedule-card {
       display: flex;

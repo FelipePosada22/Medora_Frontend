@@ -1,33 +1,21 @@
-import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { CalendarViewModel } from '../../view-models/calendar.viewmodel';
 
 type CalendarView = 'day' | 'week' | 'month';
 
-interface TimeSlot {
-  time: string;
-  hour: number;
-}
-
-interface CalendarAppointment {
-  id: string;
-  patient: string;
-  type: string;
-  doctor: string;
-  dayIndex: number;
-  startHour: number;
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
-}
-
 /**
  * Medical calendar/agenda page.
- * Displays a weekly grid (08:00–20:00) with color-coded appointment chips.
+ * Displays a weekly grid (08:00–20:00) with color-coded appointment chips
+ * loaded from the real API.
  */
 @Component({
   selector: 'app-calendar-page',
   templateUrl: './calendar-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [CalendarViewModel],
   imports: [RouterLink, CardComponent, ButtonComponent],
   styles: [`
     .calendar-toolbar {
@@ -136,7 +124,7 @@ interface CalendarAppointment {
     .appt-chip--confirmed  { background: var(--color-status-confirmed); }
     .appt-chip--completed  { background: var(--color-status-completed); }
     .appt-chip--cancelled  { background: var(--color-status-cancelled); opacity: 0.6; }
-    .appt-chip--no-show    { background: var(--color-status-no-show); }
+    .appt-chip--no_show    { background: var(--color-status-no-show); }
 
     .legend {
       display: flex;
@@ -156,49 +144,8 @@ interface CalendarAppointment {
   `],
 })
 export class CalendarPageComponent {
+  protected readonly vm         = inject(CalendarViewModel);
   protected readonly activeView = signal<CalendarView>('week');
-  protected readonly weekOffset = signal(0);
-
-  protected readonly weekDays = computed(() => {
-    const today  = new Date(2026, 2, 11);
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - today.getDay() + 1 + this.weekOffset() * 7);
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      return {
-        label:   d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }),
-        isToday: d.toDateString() === today.toDateString(),
-        index:   i,
-      };
-    });
-  });
-
-  protected readonly weekLabel = computed(() => {
-    const days = this.weekDays();
-    return `${days[0].label} – ${days[6].label}`;
-  });
-
-  protected readonly timeSlots: TimeSlot[] = Array.from({ length: 13 }, (_, i) => ({
-    hour: 8 + i,
-    time: `${String(8 + i).padStart(2, '0')}:00`,
-  }));
-
-  private readonly allAppointments: CalendarAppointment[] = [
-    { id: 'C-001', patient: 'Ana García',      type: 'Consulta',   doctor: 'Dr. Smith',  dayIndex: 1, startHour: 9,  status: 'confirmed' },
-    { id: 'C-002', patient: 'Carlos Mendoza',  type: 'Limpieza',   doctor: 'Dra. Lopez', dayIndex: 1, startHour: 10, status: 'scheduled' },
-    { id: 'C-003', patient: 'María Rodríguez', type: 'Ortodoncia', doctor: 'Dr. Rivera', dayIndex: 2, startHour: 11, status: 'confirmed' },
-    { id: 'C-004', patient: 'Luis Torres',     type: 'Radiografía',doctor: 'Dr. Smith',  dayIndex: 3, startHour: 9,  status: 'scheduled' },
-    { id: 'C-005', patient: 'Sofia Vargas',    type: 'Extracción', doctor: 'Dra. Lopez', dayIndex: 4, startHour: 14, status: 'scheduled' },
-    { id: 'C-006', patient: 'Pedro Jiménez',   type: 'Blanqueo',   doctor: 'Dr. Smith',  dayIndex: 0, startHour: 10, status: 'completed' },
-  ];
-
-  protected getSlotAppointments(dayIndex: number, hour: number): CalendarAppointment[] {
-    return this.allAppointments.filter(a => a.dayIndex === dayIndex && a.startHour === hour);
-  }
 
   protected setView(v: CalendarView): void { this.activeView.set(v); }
-  protected prevWeek(): void { this.weekOffset.update(n => n - 1); }
-  protected nextWeek(): void { this.weekOffset.update(n => n + 1); }
-  protected goToday():   void { this.weekOffset.set(0); }
 }

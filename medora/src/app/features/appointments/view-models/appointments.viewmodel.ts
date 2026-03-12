@@ -68,6 +68,13 @@ export class AppointmentsViewModel {
     this.load$.next();
   }
 
+  changeStatus(id: string, status: AppointmentStatus): void {
+    this.service.update(id, { status }).subscribe({
+      next: () => this.reload(),
+      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al actualizar estado.'),
+    });
+  }
+
   remove(id: string): void {
     this.service.remove(id).subscribe({
       next: () => this.reload(),

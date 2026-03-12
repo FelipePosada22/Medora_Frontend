@@ -6,6 +6,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { AppointmentsViewModel, StatusFilter } from '../../view-models/appointments.viewmodel';
+import { AppointmentStatus, APPOINTMENT_STATUS_LABELS } from '../../models/appointment.model';
 import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
 /**
@@ -44,35 +45,29 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
   `],
 })
 export class AppointmentsPageComponent {
-  protected readonly vm = inject(AppointmentsViewModel);
+  protected readonly vm               = inject(AppointmentsViewModel);
+  protected readonly AppointmentStatus = AppointmentStatus;
 
   protected readonly tabs: { label: string; value: StatusFilter }[] = [
-    { label: 'Todas',       value: 'all'       },
-    { label: 'Programadas', value: 'SCHEDULED' },
-    { label: 'Confirmadas', value: 'CONFIRMED' },
-    { label: 'Completadas', value: 'COMPLETED' },
-    { label: 'Canceladas',  value: 'CANCELLED' },
+    { label: 'Todas',       value: 'all'                      },
+    { label: 'Programadas', value: AppointmentStatus.SCHEDULED },
+    { label: 'Confirmadas', value: AppointmentStatus.CONFIRMED },
+    { label: 'Completadas', value: AppointmentStatus.COMPLETED },
+    { label: 'Canceladas',  value: AppointmentStatus.CANCELLED },
   ];
 
-  protected statusBadge(status: string): BadgeVariant {
-    const map: Record<string, BadgeVariant> = {
-      SCHEDULED: 'scheduled',
-      CONFIRMED: 'confirmed',
-      COMPLETED: 'completed',
-      CANCELLED: 'cancelled',
-      NO_SHOW:   'no-show',
+  protected statusBadge(status: AppointmentStatus): BadgeVariant {
+    const map: Record<AppointmentStatus, BadgeVariant> = {
+      [AppointmentStatus.SCHEDULED]: 'scheduled',
+      [AppointmentStatus.CONFIRMED]: 'confirmed',
+      [AppointmentStatus.COMPLETED]: 'completed',
+      [AppointmentStatus.CANCELLED]: 'cancelled',
+      [AppointmentStatus.NO_SHOW]:   'no-show',
     };
     return map[status] ?? 'default';
   }
 
-  protected statusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      SCHEDULED: 'Programada',
-      CONFIRMED: 'Confirmada',
-      COMPLETED: 'Completada',
-      CANCELLED: 'Cancelada',
-      NO_SHOW:   'No asistió',
-    };
-    return labels[status] ?? status;
+  protected statusLabel(status: AppointmentStatus): string {
+    return APPOINTMENT_STATUS_LABELS[status] ?? status;
   }
 }

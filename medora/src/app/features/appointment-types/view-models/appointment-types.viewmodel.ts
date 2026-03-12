@@ -8,36 +8,36 @@ import { AppointmentType } from '../models/appointment-type.model';
 @Injectable()
 export class AppointmentTypesViewModel {
   private readonly service = inject(AppointmentTypesService);
-  private readonly fb      = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
 
-  readonly types        = signal<AppointmentType[]>([]);
-  readonly isLoading    = signal(false);
+  readonly types = signal<AppointmentType[]>([]);
+  readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly searchTerm   = signal('');
+  readonly searchTerm = signal('');
 
   // Form state
-  readonly showForm  = signal(false);
+  readonly showForm = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly formError = signal<string | null>(null);
-  readonly isSaving  = signal(false);
+  readonly isSaving = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    name:            ['', Validators.required],
+    name: ['', Validators.required],
     durationMinutes: [30, [Validators.required, Validators.min(5)]],
-    price:           [0,  [Validators.required, Validators.min(0)]],
+    price: [0, [Validators.required, Validators.min(0)]],
   });
 
   readonly filtered = computed(() => {
     const q = this.searchTerm().toLowerCase();
     if (!q) return this.types();
-    return this.types().filter(t => t.name.toLowerCase().includes(q));
+    return this.types().filter((t) => t.name.toLowerCase().includes(q));
   });
 
   readonly stats = computed(() => {
     const all = this.types();
     if (!all.length) return { total: 0, avgDuration: 0, avgPrice: '0.00' };
     const avgDuration = Math.round(all.reduce((s, t) => s + t.durationMinutes, 0) / all.length);
-    const avgPrice    = (all.reduce((s, t) => s + t.price, 0) / all.length).toFixed(2);
+    const avgPrice = (all.reduce((s, t) => s + t.price, 0) / all.length).toFixed(2);
     return { total: all.length, avgDuration, avgPrice };
   });
 
@@ -53,11 +53,11 @@ export class AppointmentTypesViewModel {
           this.isLoading.set(true);
           this.errorMessage.set(null);
           return this.service.getAll().pipe(
-            tap(list => {
+            tap((list) => {
               this.types.set(list);
               this.isLoading.set(false);
             }),
-            catchError(err => {
+            catchError((err) => {
               this.errorMessage.set(err?.error?.message ?? 'Error al cargar tipos de cita.');
               this.isLoading.set(false);
               return EMPTY;
@@ -87,9 +87,9 @@ export class AppointmentTypesViewModel {
   openEdit(item: AppointmentType): void {
     this.editingId.set(item.id);
     this.form.patchValue({
-      name:            item.name,
+      name: item.name,
       durationMinutes: item.durationMinutes,
-      price:           item.price,
+      price: item.price,
     });
     this.showForm.set(true);
     this.formError.set(null);
@@ -103,20 +103,32 @@ export class AppointmentTypesViewModel {
   save(): void {
     if (this.form.invalid) return;
     this.isSaving.set(true);
-    const payload = this.form.getRawValue();
+    const { durationMinutes, name, price } = this.form.getRawValue();
+    const payload = {
+      durationMinutes: durationMinutes,
+      name: name,
+      price: Number(price),
+    };
     const op$ = this.editingId()
       ? this.service.update(this.editingId()!, payload)
       : this.service.create(payload);
     op$.subscribe({
-      next: () => { this.closeForm(); this.reload(); this.isSaving.set(false); },
-      error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+      next: () => {
+        this.closeForm();
+        this.reload();
+        this.isSaving.set(false);
+      },
+      error: (err) => {
+        this.formError.set(err?.error?.message ?? 'Error al guardar.');
+        this.isSaving.set(false);
+      },
     });
   }
 
   remove(id: string): void {
     this.service.remove(id).subscribe({
       next: () => this.reload(),
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+      error: (err) => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
     });
   }
 }

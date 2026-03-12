@@ -36,44 +36,69 @@
     <!-- Upcoming appointments -->
     <app-card>
       <p class="section-title">Próximas Citas</p>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Paciente</th>
-            <th>Hora</th>
-            <th>Tipo</th>
-            <th>Doctor</th>
-            <th>Estado</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (appt of appointments; track appt.patient + appt.time) {
+
+      @if (vm.errorMessage()) {
+        <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+      }
+
+      @if (vm.isLoading()) {
+        <div class="state-placeholder">Cargando citas...</div>
+      } @else {
+        <table class="table">
+          <thead>
             <tr>
-              <td>
-                <div style="display:flex; align-items:center; gap:var(--space-2)">
-                  <app-avatar [name]="appt.patient" size="xs" />
-                  {{ appt.patient }}
-                </div>
-              </td>
-              <td><strong>{{ appt.time }}</strong></td>
-              <td>{{ appt.type }}</td>
-              <td>{{ appt.doctor }}</td>
-              <td><app-badge [variant]="statusVariant(appt.status)">{{ appt.status }}</app-badge></td>
-              <td>
-                <app-button variant="ghost" size="sm">Atender</app-button>
-              </td>
+              <th>Paciente</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Tipo</th>
+              <th>Doctor</th>
+              <th>Estado</th>
+              <th></th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (appt of vm.upcoming(); track appt.id) {
+              <tr>
+                <td>
+                  <div style="display:flex; align-items:center; gap:var(--space-2)">
+                    <app-avatar [name]="appt.patientName" size="xs" />
+                    {{ appt.patientName }}
+                  </div>
+                </td>
+                <td>{{ appt.startTime | date:'dd/MM/yyyy' }}</td>
+                <td><strong>{{ appt.startTime | date:'HH:mm' }}</strong></td>
+                <td>{{ appt.appointmentTypeName }}</td>
+                <td>{{ appt.professionalName }}</td>
+                <td>
+                  <app-badge [variant]="statusBadge(appt.status)">{{ statusLabel(appt.status) }}</app-badge>
+                </td>
+                <td>
+                  @if (appt.status === AppointmentStatus.CONFIRMED) {
+                    <app-button variant="primary" size="sm" (click)="vm.attend(appt.id)">Atender</app-button>
+                  }
+                  @if (appt.status === AppointmentStatus.SCHEDULED) {
+                    <app-button variant="ghost" size="sm" [routerLink]="['/appointments']">Ver</app-button>
+                  }
+                </td>
+              </tr>
+            }
+            @empty {
+              <tr>
+                <td colspan="7">
+                  <div class="state-placeholder">No hay citas próximas este mes</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </app-card>
 
     <!-- Staff status -->
     <app-card>
       <p class="section-title">Estado de Staff</p>
       <div class="staff-list">
-        @for (member of staff; track member.name) {
+        @for (member of vm.staff(); track member.id) {
           <div class="staff-item">
             <app-avatar [name]="member.name" size="sm" />
             <div class="staff-item__info">

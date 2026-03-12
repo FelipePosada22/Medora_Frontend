@@ -1,9 +1,18 @@
-export type AppointmentStatus =
-  | 'SCHEDULED'
-  | 'CONFIRMED'
-  | 'CANCELLED'
-  | 'COMPLETED'
-  | 'NO_SHOW';
+export enum AppointmentStatus {
+  SCHEDULED = 'SCHEDULED',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  NO_SHOW   = 'NO_SHOW',
+}
+
+export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.SCHEDULED]: 'Programada',
+  [AppointmentStatus.CONFIRMED]: 'Confirmada',
+  [AppointmentStatus.CANCELLED]: 'Cancelada',
+  [AppointmentStatus.COMPLETED]: 'Completada',
+  [AppointmentStatus.NO_SHOW]:   'No asistió',
+};
 
 /** Appointment domain model. */
 export interface Appointment {

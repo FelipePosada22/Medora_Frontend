@@ -10,6 +10,7 @@ import { PatientsService } from '../../patients/services/patients.service';
 import { Professional } from '../../professionals/models/professional.model';
 import { AppointmentType } from '../../appointment-types/models/appointment-type.model';
 import { Patient } from '../../patients/models/patient.model';
+import { AppointmentStatus } from '../models/appointment.model';
 
 @Injectable()
 export class CreateAppointmentViewModel {
@@ -67,9 +68,8 @@ export class CreateAppointmentViewModel {
     const { patientId, professionalId, appointmentTypeId, date, startTime, endTime, notes } =
       this.form.getRawValue();
 
-    const startIso = `${date}T${startTime}:00`;
-    const endIso   = `${date}T${endTime}:00`;
-
+    const startIso = `${date}T${startTime}:00z`;
+    const endIso   = `${date}T${endTime}:00z`;
     this.appointmentsSvc
       .create({
         patientId,
@@ -78,6 +78,7 @@ export class CreateAppointmentViewModel {
         startTime: startIso,
         endTime:   endIso,
         notes:     notes || null,
+        status: AppointmentStatus.SCHEDULED
       })
       .subscribe({
         next: () => {

@@ -1,9 +1,13 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 import { CardComponent } from '../../../../shared/components/card/card.component';
-import { BadgeComponent, BadgeVariant } from '../../../../shared/components/badge/badge.component';
+import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { DashboardViewModel, StaffStatus } from '../../view-models/dashboard.viewmodel';
+import { AppointmentStatus, APPOINTMENT_STATUS_LABELS } from '../../../appointments/models/appointment.model';
+import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
 interface KpiCard {
   label: string;
@@ -11,20 +15,6 @@ interface KpiCard {
   trend: string;
   trendUp: boolean;
   icon: string;
-}
-
-interface UpcomingAppointment {
-  patient: string;
-  time: string;
-  type: string;
-  doctor: string;
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
-}
-
-interface StaffMember {
-  name: string;
-  specialty: string;
-  status: 'Activo' | 'En Cita' | 'Off-duty';
 }
 
 /**
@@ -35,7 +25,8 @@ interface StaffMember {
   selector: 'app-dashboard-page',
   templateUrl: './dashboard-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CardComponent, BadgeComponent, AvatarComponent, ButtonComponent],
+  providers: [DashboardViewModel],
+  imports: [RouterLink, DatePipe, CardComponent, BadgeComponent, AvatarComponent, ButtonComponent],
   styles: [`
     .kpi-grid {
       display: grid;
@@ -111,6 +102,9 @@ interface StaffMember {
   `],
 })
 export class DashboardPageComponent {
+  protected readonly vm               = inject(DashboardViewModel);
+  protected readonly AppointmentStatus = AppointmentStatus;
+
   protected readonly kpis: KpiCard[] = [
     { label: 'Citas hoy',            value: '12', trend: '+5% vs ayer',    trendUp: true,  icon: '📅' },
     { label: 'Pacientes Atendidos',  value: '8',  trend: '-2% vs ayer',    trendUp: false, icon: '👤' },
@@ -118,27 +112,24 @@ export class DashboardPageComponent {
     { label: 'Ingresos del día',     value: '$1,240', trend: '+8% vs ayer', trendUp: true, icon: '💰' },
   ];
 
-  protected readonly appointments: UpcomingAppointment[] = [
-    { patient: 'Ana García',      time: '09:00', type: 'Consulta general', doctor: 'Dr. Julian Smith',  status: 'confirmed'  },
-    { patient: 'Carlos Mendoza',  time: '10:30', type: 'Limpieza dental',  doctor: 'Dra. Elena Lopez',  status: 'scheduled'  },
-    { patient: 'María Rodríguez', time: '11:00', type: 'Ortodoncia',       doctor: 'Dr. Marc Rivera',   status: 'confirmed'  },
-    { patient: 'Luis Torres',     time: '12:00', type: 'Radiografía',      doctor: 'Dr. Julian Smith',  status: 'scheduled'  },
-    { patient: 'Sofia Vargas',    time: '14:30', type: 'Extracción',       doctor: 'Dra. Elena Lopez',  status: 'scheduled'  },
-  ];
-
-  protected readonly staff: StaffMember[] = [
-    { name: 'Dr. Julian Smith',  specialty: 'Odontología General', status: 'En Cita'  },
-    { name: 'Dra. Elena Lopez',  specialty: 'Ortodoncia',          status: 'Activo'   },
-    { name: 'Dr. Marc Rivera',   specialty: 'Radiología',          status: 'Off-duty' },
-  ];
-
-  protected statusVariant(status: UpcomingAppointment['status']): BadgeVariant {
-    return status;
+  protected statusBadge(status: AppointmentStatus): BadgeVariant {
+    const map: Record<AppointmentStatus, BadgeVariant> = {
+      [AppointmentStatus.SCHEDULED]: 'scheduled',
+      [AppointmentStatus.CONFIRMED]: 'confirmed',
+      [AppointmentStatus.COMPLETED]: 'completed',
+      [AppointmentStatus.CANCELLED]: 'cancelled',
+      [AppointmentStatus.NO_SHOW]:   'no-show',
+    };
+    return map[status] ?? 'default';
   }
 
-  protected staffVariant(status: StaffMember['status']): 'success' | 'warning' | 'default' {
-    if (status === 'Activo')   return 'success';
-    if (status === 'En Cita')  return 'warning';
+  protected statusLabel(status: AppointmentStatus): string {
+    return APPOINTMENT_STATUS_LABELS[status] ?? status;
+  }
+
+  protected staffVariant(status: StaffStatus): 'success' | 'warning' | 'default' {
+    if (status === StaffStatus.ACTIVE)     return 'success';
+    if (status === StaffStatus.IN_SESSION) return 'warning';
     return 'default';
   }
 }

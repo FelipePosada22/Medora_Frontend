@@ -41,7 +41,7 @@ export interface AppointmentDto {
 }
 
 export interface CalendarQueryParams {
-  professionalId: string;
+  professionalId?: string;
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
 }
@@ -57,10 +57,12 @@ export class AppointmentsApi {
   }
 
   getCalendar(params: CalendarQueryParams): Observable<AppointmentDto[]> {
-    const httpParams = new HttpParams()
-      .set('professionalId', params.professionalId)
+    let httpParams = new HttpParams()
       .set('startDate', params.startDate)
       .set('endDate', params.endDate);
+    if (params.professionalId) {
+      httpParams = httpParams.set('professionalId', params.professionalId);
+    }
     return this.http.get<AppointmentDto[]>(`${this.baseUrl}/calendar`, { params: httpParams });
   }
 

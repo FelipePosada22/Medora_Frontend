@@ -15,7 +15,7 @@ import { CreateAppointmentViewModel } from '../../view-models/create-appointment
   templateUrl: './create-appointment-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CreateAppointmentViewModel],
-  imports: [RouterLink, ReactiveFormsModule, CardComponent, ButtonComponent, InputComponent],
+  imports: [RouterLink, ReactiveFormsModule, CardComponent, ButtonComponent],
   styles: [`
     .form-grid {
       display: grid;

@@ -69,8 +69,17 @@
               </td>
               <td>
                 <div class="row-actions">
-                  <app-button variant="ghost" size="sm">Ver</app-button>
-                  <app-button variant="ghost" size="sm">Editar</app-button>
+                  @if (appt.status === AppointmentStatus.SCHEDULED) {
+                    <app-button variant="primary" size="sm" (click)="vm.changeStatus(appt.id, AppointmentStatus.CONFIRMED)">Confirmar</app-button>
+                    <app-button variant="ghost" size="sm" (click)="vm.changeStatus(appt.id, AppointmentStatus.CANCELLED)">Cancelar</app-button>
+                  }
+                  @if (appt.status === AppointmentStatus.CONFIRMED) {
+                    <app-button variant="primary" size="sm" (click)="vm.changeStatus(appt.id, AppointmentStatus.COMPLETED)">Atender</app-button>
+                    <app-button variant="ghost" size="sm" (click)="vm.changeStatus(appt.id, AppointmentStatus.CANCELLED)">Cancelar</app-button>
+                  }
+                  @if (appt.status === AppointmentStatus.COMPLETED || appt.status === AppointmentStatus.CANCELLED || appt.status === AppointmentStatus.NO_SHOW) {
+                    <span style="color:var(--color-text-muted);font-size:var(--font-size-sm)">—</span>
+                  }
                 </div>
               </td>
             </tr>

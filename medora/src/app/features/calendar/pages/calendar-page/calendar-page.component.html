@@ -12,10 +12,10 @@
     <!-- Toolbar -->
     <div class="calendar-toolbar" style="margin-bottom: var(--space-4)">
       <div class="week-nav">
-        <button class="nav-btn" (click)="prevWeek()">‹</button>
-        <span class="week-label">{{ weekLabel() }}</span>
-        <button class="nav-btn" (click)="nextWeek()">›</button>
-        <app-button variant="secondary" size="sm" (click)="goToday()">Hoy</app-button>
+        <button class="nav-btn" (click)="vm.prevWeek()">‹</button>
+        <span class="week-label">{{ vm.weekLabel() }}</span>
+        <button class="nav-btn" (click)="vm.nextWeek()">›</button>
+        <app-button variant="secondary" size="sm" (click)="vm.goToday()">Hoy</app-button>
       </div>
       <div class="view-toggle">
         <button class="view-btn" [class.view-btn--active]="activeView() === 'day'"   (click)="setView('day')">Día</button>
@@ -24,31 +24,39 @@
       </div>
     </div>
 
-    <!-- Calendar grid -->
-    <div class="calendar-grid">
-      <!-- Corner -->
-      <div class="cal-corner"></div>
-      <!-- Day headers -->
-      @for (day of weekDays(); track day.index) {
-        <div class="cal-day-header" [class.cal-day-header--today]="day.isToday">
-          {{ day.label }}
-        </div>
-      }
+    @if (vm.errorMessage()) {
+      <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+    }
 
-      <!-- Time rows -->
-      @for (slot of timeSlots; track slot.hour) {
-        <div class="cal-time">{{ slot.time }}</div>
-        @for (day of weekDays(); track day.index) {
-          <div class="cal-cell">
-            @for (appt of getSlotAppointments(day.index, slot.hour); track appt.id) {
-              <div class="appt-chip" [class]="'appt-chip appt-chip--' + appt.status" [title]="appt.patient + ' · ' + appt.type">
-                {{ appt.patient }}
-              </div>
-            }
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando agenda...</div>
+    } @else {
+      <!-- Calendar grid -->
+      <div class="calendar-grid">
+        <!-- Corner -->
+        <div class="cal-corner"></div>
+        <!-- Day headers -->
+        @for (day of vm.weekDays(); track day.index) {
+          <div class="cal-day-header" [class.cal-day-header--today]="day.isToday">
+            {{ day.label }}
           </div>
         }
-      }
-    </div>
+
+        <!-- Time rows -->
+        @for (slot of vm.timeSlots; track slot.hour) {
+          <div class="cal-time">{{ slot.time }}</div>
+          @for (day of vm.weekDays(); track day.index) {
+            <div class="cal-cell">
+              @for (appt of vm.getSlotAppointments(day.index, slot.hour); track appt.id) {
+                <div [class]="vm.chipClass(appt.status)" [title]="vm.chipTitle(appt)">
+                  {{ appt.patientName }}
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
 
     <!-- Legend -->
     <div class="legend" style="margin-top: var(--space-4)">

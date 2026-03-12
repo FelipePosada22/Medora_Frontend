@@ -7,7 +7,6 @@ export interface LoginCredentials {
 /** JWT tokens returned by the auth API. */
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
 }
 
 /** Authenticated user domain model. */
