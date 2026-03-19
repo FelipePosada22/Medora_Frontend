@@ -1,14 +1,16 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, startWith, tap, catchError, EMPTY } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, startWith, tap, catchError, EMPTY, Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PatientsService } from '../services/patients.service';
 import { Patient } from '../models/patient.model';
+import { ToastService } from '../../../core/toast/toast.service';
 
 @Injectable()
 export class PatientsViewModel {
   private readonly service = inject(PatientsService);
   private readonly fb      = inject(FormBuilder);
+  private readonly toast   = inject(ToastService);
 
   readonly patients     = signal<Patient[]>([]);
   readonly isLoading    = signal(false);
@@ -91,7 +93,7 @@ export class PatientsViewModel {
       name:      patient.name,
       phone:     patient.phone,
       email:     patient.email,
-      birthdate: patient.birthdate ?? '',
+      birthdate: patient.birthdate ? patient.birthdate.slice(0, 10) : '',
       notes:     patient.notes     ?? '',
     });
     this.formError.set(null);
@@ -111,22 +113,37 @@ export class PatientsViewModel {
       name:      raw.name,
       phone:     raw.phone,
       email:     raw.email,
-      birthdate: raw.birthdate || null,
+      birthdate: raw.birthdate ? new Date(raw.birthdate).toISOString() : null,
       notes:     raw.notes     || null,
     };
-    const op$ = this.editingId()
+    const op$: Observable<unknown> = this.editingId()
       ? this.service.update(this.editingId()!, payload)
       : this.service.create(payload);
+    const isEditing = !!this.editingId();
     op$.subscribe({
-      next: () => { this.closeForm(); this.reload(); this.isSaving.set(false); },
-      error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+      next: () => {
+        this.closeForm();
+        this.reload();
+        this.isSaving.set(false);
+        this.toast.success(isEditing ? 'Paciente actualizado correctamente.' : 'Paciente creado correctamente.');
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al guardar.';
+        this.formError.set(msg);
+        this.toast.error(msg);
+        this.isSaving.set(false);
+      },
     });
   }
 
   remove(id: string): void {
     this.service.remove(id).subscribe({
-      next: () => this.reload(),
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+      next: () => { this.reload(); this.toast.success('Paciente eliminado.'); },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al eliminar.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 }

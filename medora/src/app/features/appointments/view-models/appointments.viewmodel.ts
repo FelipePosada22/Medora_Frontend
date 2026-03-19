@@ -3,12 +3,14 @@ import { Subject, switchMap, startWith, tap, catchError, EMPTY, debounceTime, di
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppointmentsService } from '../services/appointments.service';
 import { Appointment, AppointmentStatus } from '../models/appointment.model';
+import { ToastService } from '../../../core/toast/toast.service';
 
 export type StatusFilter = 'all' | AppointmentStatus;
 
 @Injectable()
 export class AppointmentsViewModel {
   private readonly service = inject(AppointmentsService);
+  private readonly toast   = inject(ToastService);
 
   readonly appointments  = signal<Appointment[]>([]);
   readonly isLoading     = signal(false);
@@ -70,15 +72,23 @@ export class AppointmentsViewModel {
 
   changeStatus(id: string, status: AppointmentStatus): void {
     this.service.update(id, { status }).subscribe({
-      next: () => this.reload(),
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al actualizar estado.'),
+      next: () => { this.reload(); this.toast.success('Estado de cita actualizado.'); },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al actualizar estado.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 
   remove(id: string): void {
     this.service.remove(id).subscribe({
-      next: () => this.reload(),
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar cita.'),
+      next: () => { this.reload(); this.toast.success('Cita eliminada.'); },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al eliminar cita.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 }

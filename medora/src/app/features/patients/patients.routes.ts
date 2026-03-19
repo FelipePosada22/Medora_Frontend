@@ -9,4 +9,11 @@ export const patientsRoutes: Routes = [
         m => m.PatientsPageComponent,
       ),
   },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./pages/patient-detail-page/patient-detail-page.component').then(
+        m => m.PatientDetailPageComponent,
+      ),
+  },
 ];

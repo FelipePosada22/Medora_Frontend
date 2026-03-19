@@ -1,30 +1,22 @@
-import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
-import { DatePipe, CurrencyPipe } from '@angular/common';
+import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { AuthStateService } from '../../../../core/auth/services/auth-state.service';
 import { CardComponent } from '../../../../shared/components/card/card.component';
-import { BadgeComponent, BadgeVariant } from '../../../../shared/components/badge/badge.component';
+import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { SearchSelectComponent } from '../../../../shared/components/search-select/search-select.component';
+import { BillingViewModel } from '../../view-models/billing.viewmodel';
+import { InvoiceStatus, INVOICE_STATUS_LABELS } from '../../models/invoice.model';
+import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
-type InvoiceStatus = 'paid' | 'pending' | 'overdue' | 'cancelled';
-type StatusFilter  = 'all' | InvoiceStatus;
-
-interface Invoice {
-  id: string;
-  patient: string;
-  service: string;
-  date: Date;
-  amount: number;
-  status: InvoiceStatus;
-}
-
-/**
- * Billing / Facturación page.
- * Shows revenue stats and an invoice list with status filters.
- */
 @Component({
   selector: 'app-billing-page',
   templateUrl: './billing-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, CurrencyPipe, CardComponent, BadgeComponent, ButtonComponent],
+  providers: [BillingViewModel],
+  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, CardComponent, BadgeComponent, ButtonComponent, SearchSelectComponent],
   styles: [`
     .stats-grid {
       display: grid;
@@ -34,9 +26,9 @@ interface Invoice {
     .stat-card { padding: var(--space-5); }
     .stat-card__label { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-1); }
     .stat-card__value { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); }
-    .stat-card__value--green  { color: var(--color-success-600); }
-    .stat-card__value--amber  { color: var(--color-warning-700); }
-    .stat-card__value--red    { color: var(--color-error-600); }
+    .stat-card__value--green { color: var(--color-success-600); }
+    .stat-card__value--amber { color: var(--color-warning-700); }
+    .stat-card__value--red   { color: var(--color-error-600); }
 
     .status-tabs {
       display: flex;
@@ -57,63 +49,194 @@ interface Invoice {
       transition: all var(--transition-fast);
     }
     .status-tab--active { color: var(--color-primary-600); border-bottom-color: var(--color-primary-600); }
+
+    /* Panels */
+    .panel-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 100;
+    }
+    .panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 500px; max-width: 95vw;
+      height: 100vh;
+      background: var(--color-surface);
+      box-shadow: -4px 0 24px rgba(0,0,0,.12);
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .panel-title {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+    .panel-close {
+      background: none; border: none; cursor: pointer;
+      font-size: var(--font-size-xl); color: var(--color-text-muted); line-height: 1;
+      &:hover { color: var(--color-text-primary); }
+    }
+    .panel-body {
+      flex: 1; overflow-y: auto;
+      padding: var(--space-5);
+      display: flex; flex-direction: column; gap: var(--space-4);
+    }
+    .panel-footer {
+      padding: var(--space-4) var(--space-5);
+      border-top: 1px solid var(--color-border);
+      display: flex; gap: var(--space-3); justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    /* Form */
+    .form-group { display: flex; flex-direction: column; gap: var(--space-1); }
+    .form-label {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-secondary);
+    }
+    .form-label--required::after { content: ' *'; color: var(--color-error-500); }
+    .form-input, .form-select, .form-textarea {
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      background: var(--color-surface);
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+      &:focus { border-color: var(--color-primary-400); }
+    }
+    .form-textarea { min-height: 72px; resize: vertical; }
+    .form-error { font-size: var(--font-size-xs); color: var(--color-error-600); }
+
+    /* Items */
+    .items-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .items-section-label {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr 64px 88px 28px;
+      gap: var(--space-2);
+      align-items: end;
+      margin-bottom: var(--space-2);
+    }
+    .item-col-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      margin-bottom: 2px;
+    }
+    .item-remove {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-error-500); font-size: 18px;
+      line-height: 1; padding: 6px 0;
+      &:hover { color: var(--color-error-700); }
+      &:disabled { opacity: 0.3; cursor: default; }
+    }
+    .items-total {
+      text-align: right;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* Detail */
+    .detail-row { display: flex; flex-direction: column; gap: var(--space-1); }
+    .detail-label {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-muted);
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .detail-value { font-size: var(--font-size-sm); color: var(--color-text-primary); }
+    .detail-divider { border: none; border-top: 1px solid var(--color-border); }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+
+    .mini-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+    .mini-table th {
+      text-align: left; padding: var(--space-2);
+      font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+      color: var(--color-text-muted); border-bottom: 1px solid var(--color-border);
+    }
+    .mini-table td { padding: var(--space-2); border-bottom: 1px solid var(--color-border); }
+    .mini-table tfoot td {
+      font-weight: var(--font-weight-semibold);
+      border-top: 2px solid var(--color-border); border-bottom: none;
+    }
+    .text-right { text-align: right; }
+
+    .balance-box {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-primary-50);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+    }
+    .balance-amount {
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-xl);
+      color: var(--color-primary-700);
+    }
+
+    .payment-section {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+    }
+    .payment-section-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-3);
+    }
+    .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+
+    .status-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
   `],
 })
 export class BillingPageComponent {
-  protected readonly activeFilter = signal<StatusFilter>('all');
-  protected readonly searchTerm   = signal('');
+  protected readonly vm            = inject(BillingViewModel);
+  protected readonly InvoiceStatus = InvoiceStatus;
 
-  protected readonly tabs: { label: string; value: StatusFilter }[] = [
-    { label: 'Todas',     value: 'all'       },
-    { label: 'Pagadas',   value: 'paid'      },
-    { label: 'Pendientes',value: 'pending'   },
-    { label: 'Vencidas',  value: 'overdue'   },
-    { label: 'Canceladas',value: 'cancelled' },
-  ];
+  private readonly authState = inject(AuthStateService);
+  protected readonly isDoctor = computed(() => this.authState.user()?.role === 'DOCTOR');
 
-  private readonly allInvoices: Invoice[] = [
-    { id: 'INV-001', patient: 'Ana García',      service: 'Consulta General', date: new Date('2026-03-11'), amount: 50.00,  status: 'paid'      },
-    { id: 'INV-002', patient: 'Carlos Mendoza',  service: 'Limpieza Dental',  date: new Date('2026-03-11'), amount: 75.00,  status: 'pending'   },
-    { id: 'INV-003', patient: 'María Rodríguez', service: 'Ortodoncia',       date: new Date('2026-03-10'), amount: 120.00, status: 'paid'      },
-    { id: 'INV-004', patient: 'Luis Torres',     service: 'Radiografía',      date: new Date('2026-03-10'), amount: 40.00,  status: 'paid'      },
-    { id: 'INV-005', patient: 'Sofia Vargas',    service: 'Extracción',       date: new Date('2026-03-09'), amount: 90.00,  status: 'overdue'   },
-    { id: 'INV-006', patient: 'Pedro Jiménez',   service: 'Blanqueamiento',   date: new Date('2026-03-08'), amount: 200.00, status: 'cancelled' },
-    { id: 'INV-007', patient: 'Laura Castillo',  service: 'Endodoncia',       date: new Date('2026-03-07'), amount: 180.00, status: 'paid'      },
-    { id: 'INV-008', patient: 'Roberto Díaz',    service: 'Consulta General', date: new Date('2026-03-06'), amount: 50.00,  status: 'overdue'   },
-    { id: 'INV-009', patient: 'Ana García',      service: 'Ortodoncia',       date: new Date('2026-03-05'), amount: 120.00, status: 'pending'   },
-    { id: 'INV-010', patient: 'Carlos Mendoza',  service: 'Sellador',         date: new Date('2026-03-04'), amount: 35.00,  status: 'paid'      },
-  ];
+  constructor() {
+    const route              = inject(ActivatedRoute);
+    const params             = route.snapshot.queryParamMap;
+    const patientId          = params.get('patientId');
+    const appointmentId      = params.get('appointmentId') ?? undefined;
+    const serviceDescription = params.get('serviceDescription') ?? undefined;
+    const servicePrice       = params.get('servicePrice') ? Number(params.get('servicePrice')) : undefined;
+    if (patientId) this.vm.openCreatePanel({ patientId, appointmentId, serviceDescription, servicePrice });
+  }
 
-  protected readonly invoices = computed(() => {
-    const filter = this.activeFilter();
-    const q      = this.searchTerm().toLowerCase();
-    return this.allInvoices
-      .filter(i => filter === 'all' || i.status === filter)
-      .filter(i => !q || i.patient.toLowerCase().includes(q));
-  });
-
-  protected readonly stats = computed(() => {
-    const paid    = this.allInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
-    const pending = this.allInvoices.filter(i => i.status === 'pending').reduce((s, i) => s + i.amount, 0);
-    const overdue = this.allInvoices.filter(i => i.status === 'overdue').reduce((s, i) => s + i.amount, 0);
-    const total   = this.allInvoices.reduce((s, i) => s + i.amount, 0);
-    return { total, paid, pending, overdue };
-  });
-
-  protected statusVariant(status: InvoiceStatus): BadgeVariant {
+  protected statusBadge(status: InvoiceStatus): BadgeVariant {
     const map: Record<InvoiceStatus, BadgeVariant> = {
-      paid: 'success', pending: 'warning', overdue: 'error', cancelled: 'default',
+      [InvoiceStatus.DRAFT]:     'default',
+      [InvoiceStatus.ISSUED]:    'info',
+      [InvoiceStatus.PAID]:      'success',
+      [InvoiceStatus.CANCELLED]: 'error',
+      [InvoiceStatus.OVERDUE]:   'warning',
     };
-    return map[status];
+    return map[status] ?? 'default';
   }
 
   protected statusLabel(status: InvoiceStatus): string {
-    const map: Record<InvoiceStatus, string> = {
-      paid: 'Pagada', pending: 'Pendiente', overdue: 'Vencida', cancelled: 'Cancelada',
-    };
-    return map[status];
+    return INVOICE_STATUS_LABELS[status] ?? status;
   }
-
-  protected setFilter(f: StatusFilter): void { this.activeFilter.set(f); }
-  protected onSearch(e: Event): void { this.searchTerm.set((e.target as HTMLInputElement).value); }
 }

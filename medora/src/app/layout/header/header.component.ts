@@ -1,12 +1,8 @@
-import { Component, inject, input, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { AuthStateService } from '../../core/auth/services/auth-state.service';
+import { AuthService } from '../../features/auth/services/auth.service';
 
-/**
- * Top header bar for the dashboard layout.
- * Displays the current page title and user menu.
- */
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
@@ -14,15 +10,19 @@ import { AuthStateService } from '../../core/auth/services/auth-state.service';
   imports: [AvatarComponent],
 })
 export class HeaderComponent {
-  private readonly authState = inject(AuthStateService);
-  private readonly router    = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly authState   = inject(AuthStateService);
 
   readonly pageTitle = input('');
 
-  protected readonly user = this.authState.user;
+  protected readonly user     = this.authState.user;
+  protected readonly showMenu = signal(false);
+
+  protected toggleMenu(): void  { this.showMenu.update(v => !v); }
+  protected closeMenu(): void   { this.showMenu.set(false); }
 
   protected logout(): void {
-    this.authState.clearSession();
-    this.router.navigate(['/auth/login']);
+    this.showMenu.set(false);
+    this.authService.logout();
   }
 }

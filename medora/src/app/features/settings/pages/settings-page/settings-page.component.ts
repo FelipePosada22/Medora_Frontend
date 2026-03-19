@@ -1,19 +1,16 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { BadgeComponent, BadgeVariant } from '../../../../shared/components/badge/badge.component';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
+import { UsersViewModel } from '../../view-models/users.viewmodel';
+import { ClinicViewModel } from '../../view-models/clinic.viewmodel';
+import { USER_ROLE_LABELS, UserRole } from '../../models/user.model';
 
 type SettingsTab = 'clinic' | 'users' | 'preferences';
-
-interface SystemUser {
-  name: string;
-  email: string;
-  role: 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST';
-  active: boolean;
-}
 
 /**
  * Settings page.
@@ -23,7 +20,8 @@ interface SystemUser {
   selector: 'app-settings-page',
   templateUrl: './settings-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CardComponent, ButtonComponent, InputComponent, BadgeComponent, AvatarComponent],
+  providers: [UsersViewModel, ClinicViewModel],
+  imports: [ReactiveFormsModule, DatePipe, CardComponent, ButtonComponent, InputComponent, BadgeComponent, AvatarComponent],
   styles: [`
     .settings-layout {
       display: grid;
@@ -112,14 +110,38 @@ interface SystemUser {
     }
     input:checked + .toggle-track { background: var(--color-primary-600); }
     input:checked + .toggle-track::after { transform: translateX(20px); }
+
+    /* User form panel */
+    .user-form-panel {
+      background: var(--color-neutral-50);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+    }
+    .user-form-panel__title {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--space-4);
+    }
+    .user-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    @media (max-width: 640px) { .user-form-grid { grid-template-columns: 1fr; } }
+    .user-form-actions {
+      display: flex; justify-content: flex-end; gap: var(--space-3);
+      padding-top: var(--space-4); border-top: 1px solid var(--color-border);
+    }
   `],
 })
 export class SettingsPageComponent {
-  private readonly fb = new FormBuilder();
+  protected readonly clinicVm = inject(ClinicViewModel);
+  protected readonly usersVm  = inject(UsersViewModel);
 
-  protected readonly activeTab  = signal<SettingsTab>('clinic');
-  protected readonly isSaving   = signal(false);
-  protected readonly savedOk    = signal(false);
+  protected readonly activeTab = signal<SettingsTab>('clinic');
 
   protected readonly tabs: { label: string; icon: string; value: SettingsTab }[] = [
     { label: 'Clínica',       icon: '🏥', value: 'clinic'      },
@@ -127,43 +149,28 @@ export class SettingsPageComponent {
     { label: 'Preferencias',  icon: '⚙️', value: 'preferences' },
   ];
 
-  protected readonly clinicForm = this.fb.group({
-    name:     ['Medora Dental Clinic', Validators.required],
-    phone:    ['+1 555-0100',          Validators.required],
-    email:    ['info@medora.com',      [Validators.required, Validators.email]],
-    address:  ['123 Main St, Miami, FL'],
-    timezone: ['America/New_York'],
-    currency: ['USD'],
-  });
-
-  protected readonly users: SystemUser[] = [
-    { name: 'Dr. Julian Smith',  email: 'j.smith@medora.com',  role: 'DOCTOR',       active: true  },
-    { name: 'Dra. Elena Lopez',  email: 'e.lopez@medora.com',  role: 'DOCTOR',       active: true  },
-    { name: 'Admin User',        email: 'admin@medora.com',    role: 'ADMIN',        active: true  },
-    { name: 'Recepción',         email: 'recep@medora.com',    role: 'RECEPTIONIST', active: true  },
-    { name: 'Dr. Marc Rivera',   email: 'm.rivera@medora.com', role: 'DOCTOR',       active: false },
-  ];
-
   protected readonly preferences = signal({
-    emailNotifications:  true,
-    smsReminders:        false,
-    autoConfirm:         true,
-    darkMode:            false,
-    twoFactor:           false,
+    emailNotifications: true,
+    smsReminders:       false,
+    autoConfirm:        true,
+    darkMode:           false,
+    twoFactor:          false,
   });
 
   protected setTab(t: SettingsTab): void { this.activeTab.set(t); }
 
-  protected saveClinic(): void {
-    if (this.clinicForm.invalid) return;
-    this.isSaving.set(true);
-    setTimeout(() => { this.isSaving.set(false); this.savedOk.set(true); setTimeout(() => this.savedOk.set(false), 3000); }, 1200);
+  protected roleLabel(role: UserRole): string {
+    return USER_ROLE_LABELS[role] ?? role;
   }
 
-  protected roleVariant(role: SystemUser['role']): BadgeVariant {
-    if (role === 'ADMIN')  return 'warning';
-    if (role === 'DOCTOR') return 'info';
-    return 'default';
+  protected roleVariant(role: UserRole): BadgeVariant {
+    const map: Record<UserRole, BadgeVariant> = {
+      ADMIN:        'warning',
+      DOCTOR:       'info',
+      RECEPTIONIST: 'default',
+      AUXILIARY:    'default',
+    };
+    return map[role] ?? 'default';
   }
 
   protected togglePref(key: keyof ReturnType<typeof this.preferences>): void {

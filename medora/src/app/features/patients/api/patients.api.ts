@@ -17,6 +17,39 @@ export interface PatientDto {
   updatedAt: string;
 }
 
+export interface PatientAppointmentDto {
+  id: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  notes: string | null;
+  professional: { id: string; name: string; specialty: string };
+  appointmentType: { id: string; name: string; durationMinutes: number; price: number };
+}
+
+export interface PatientInvoiceItemDto {
+  description: string; quantity: number; unitPrice: number; total: number;
+}
+
+export interface PatientInvoicePaymentDto {
+  amount: number; method: string; reference: string | null; paidAt: string;
+}
+
+export interface PatientInvoiceDto {
+  id: string;
+  status: string;
+  issuedAt: string | null;
+  dueDate: string | null;
+  notes: string | null;
+  items: PatientInvoiceItemDto[];
+  payments: PatientInvoicePaymentDto[];
+  appointment: {
+    id: string;
+    startTime: string;
+    appointmentType: { name: string };
+  } | null;
+}
+
 /**
  * Patients HTTP API service.
  * Handles all REST communication with the /patients endpoints.
@@ -39,11 +72,19 @@ export class PatientsApi {
     return this.http.post<PatientDto>(this.baseUrl, payload);
   }
 
-  update(id: string, payload: Partial<PatientPayload>): Observable<PatientDto> {
-    return this.http.put<PatientDto>(`${this.baseUrl}/${id}`, payload);
+  update(id: string, payload: Partial<PatientPayload>): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${id}`, payload);
   }
 
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  getAppointments(id: string): Observable<PatientAppointmentDto[]> {
+    return this.http.get<PatientAppointmentDto[]>(`${this.baseUrl}/${id}/appointments`);
+  }
+
+  getInvoices(id: string): Observable<PatientInvoiceDto[]> {
+    return this.http.get<PatientInvoiceDto[]>(`${this.baseUrl}/${id}/invoices`);
   }
 }

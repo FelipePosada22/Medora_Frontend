@@ -1,18 +1,17 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
-import { AuthStateService } from '../../core/auth/services/auth-state.service';
+import { AuthStateService, SessionUser } from '../../core/auth/services/auth-state.service';
 
 interface NavItem {
   label: string;
   route: string;
   icon: string;
+  roles: SessionUser['role'][];
 }
 
-/**
- * Main sidebar navigation component.
- * Displays the clinic brand, navigation links, and the current user info.
- */
+const ALL_ROLES: SessionUser['role'][] = ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'AUXILIARY'];
+
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
@@ -22,21 +21,26 @@ interface NavItem {
 export class SidebarComponent {
   private readonly authState = inject(AuthStateService);
 
-  protected readonly user       = this.authState.user;
+  protected readonly user        = this.authState.user;
   protected readonly isCollapsed = signal(false);
 
-  protected readonly navItems: NavItem[] = [
-    { label: 'Dashboard',       route: '/dashboard',          icon: '⊞'  },
-    { label: 'Agenda',          route: '/calendar',           icon: '📅' },
-    { label: 'Pacientes',       route: '/patients',           icon: '👤' },
-    { label: 'Citas',           route: '/appointments',       icon: '📋' },
-    { label: 'Profesionales',   route: '/professionals',      icon: '🩺' },
-    { label: 'Tipos de cita',   route: '/appointment-types',  icon: '🏷'  },
-    { label: 'Horarios',        route: '/schedules',          icon: '🕐' },
-    { label: 'Facturación',     route: '/billing',            icon: '💰' },
-    { label: 'Atención',        route: '/attention',          icon: '🔬' },
-    { label: 'Configuración',   route: '/settings',           icon: '⚙️' },
+  private readonly allNavItems: NavItem[] = [
+    { label: 'Dashboard',      route: '/dashboard',         icon: '⊞',  roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+    { label: 'Agenda',         route: '/calendar',          icon: '📅', roles: ALL_ROLES },
+    { label: 'Citas',          route: '/appointments',      icon: '📋', roles: ALL_ROLES },
+    { label: 'Pacientes',      route: '/patients',          icon: '👤', roles: ALL_ROLES },
+    { label: 'Facturación',    route: '/billing',           icon: '💰', roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+    { label: 'Profesionales',  route: '/professionals',     icon: '🩺', roles: ['ADMIN'] },
+    { label: 'Tipos de cita',  route: '/appointment-types', icon: '🏷',  roles: ['ADMIN'] },
+    { label: 'Horarios',       route: '/schedules',         icon: '🕐', roles: ['ADMIN'] },
+    { label: 'Configuración',  route: '/settings',          icon: '⚙️', roles: ['ADMIN'] },
   ];
+
+  protected readonly navItems = computed(() => {
+    const role = this.user()?.role;
+    if (!role) return [];
+    return this.allNavItems.filter(item => item.roles.includes(role));
+  });
 
   protected toggleCollapse(): void {
     this.isCollapsed.update(v => !v);

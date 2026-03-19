@@ -1,0 +1,280 @@
+<div class="page">
+
+  <!-- Breadcrumb -->
+  <a class="back-link" [routerLink]="['/patients']">← Volver a pacientes</a>
+
+  @if (vm.isLoading()) {
+    <div class="state-placeholder">Cargando información del paciente...</div>
+  } @else if (vm.error()) {
+    <div class="alert alert--error">{{ vm.error() }}</div>
+  } @else if (vm.patient(); as patient) {
+
+    <!-- Patient hero card -->
+    <app-card padding="none">
+      <div class="patient-hero">
+        <div class="patient-avatar">{{ initials(patient.name) }}</div>
+        <div style="flex: 1">
+          <div class="patient-hero__name">{{ patient.name }}</div>
+          <div class="patient-hero__sub">{{ patient.email }} · {{ patient.phone }}</div>
+          <div class="patient-hero__sub">Registrado el {{ patient.createdAt | date:'dd/MM/yyyy' }}</div>
+        </div>
+        <a class="btn-primary-link" [routerLink]="['/billing']" [queryParams]="{ patientId: patient.id }">
+          + Nueva factura
+        </a>
+      </div>
+    </app-card>
+
+    <!-- Quick stats -->
+    <div class="stats-grid">
+      <app-card padding="none">
+        <div class="stat-card">
+          <div class="stat-card__label">Total citas</div>
+          <div class="stat-card__value">{{ vm.totalAppointments() }}</div>
+        </div>
+      </app-card>
+      <app-card padding="none">
+        <div class="stat-card">
+          <div class="stat-card__label">Completadas</div>
+          <div class="stat-card__value stat-card__value--green">{{ vm.completedAppointments() }}</div>
+        </div>
+      </app-card>
+      <app-card padding="none">
+        <div class="stat-card">
+          <div class="stat-card__label">Próximas</div>
+          <div class="stat-card__value stat-card__value--amber">{{ vm.pendingAppointments() }}</div>
+        </div>
+      </app-card>
+      <app-card padding="none">
+        <div class="stat-card">
+          <div class="stat-card__label">Total pagado</div>
+          <div class="stat-card__value stat-card__value--green">{{ vm.totalSpent() | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </app-card>
+      <app-card padding="none">
+        <div class="stat-card">
+          <div class="stat-card__label">Saldo pendiente</div>
+          <div class="stat-card__value" [class.stat-card__value--red]="vm.pendingBalance() > 0">
+            {{ vm.pendingBalance() | currency:'USD':'symbol':'1.0-0' }}
+          </div>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Tabs -->
+    <app-card padding="none">
+      <div class="tabs-bar">
+        <button class="tab-btn" [class.tab-btn--active]="vm.activeTab() === 'info'"
+          (click)="vm.activeTab.set('info')">Información</button>
+        <button class="tab-btn" [class.tab-btn--active]="vm.activeTab() === 'appointments'"
+          (click)="vm.activeTab.set('appointments')">
+          Citas ({{ vm.totalAppointments() }})
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="vm.activeTab() === 'invoices'"
+          (click)="vm.activeTab.set('invoices')">
+          Facturas ({{ vm.invoices().length }})
+        </button>
+      </div>
+
+      <div style="padding: var(--space-5)">
+
+        @switch (vm.activeTab()) {
+
+          <!-- ── INFO ──────────────────────────────────────────────────────── -->
+          @case ('info') {
+            <div class="info-grid">
+              <div class="info-field">
+                <span class="info-label">Nombre completo</span>
+                <span class="info-value">{{ patient.name }}</span>
+              </div>
+              <div class="info-field">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ patient.email }}</span>
+              </div>
+              <div class="info-field">
+                <span class="info-label">Teléfono</span>
+                <span class="info-value">{{ patient.phone }}</span>
+              </div>
+              <div class="info-field">
+                <span class="info-label">Fecha de nacimiento</span>
+                @if (patient.birthdate) {
+                  <span class="info-value">{{ patient.birthdate | date:"d 'de' MMMM yyyy":'UTC' }}</span>
+                } @else {
+                  <span class="info-value info-value--muted">No registrada</span>
+                }
+              </div>
+            </div>
+
+            @if (patient.notes) {
+              <hr class="info-divider" style="margin: var(--space-5) 0" />
+              <div class="info-field">
+                <span class="info-label">Notas</span>
+                <span class="info-value">{{ patient.notes }}</span>
+              </div>
+            }
+          }
+
+          <!-- ── CITAS ──────────────────────────────────────────────────────── -->
+          @case ('appointments') {
+            @if (vm.appointments().length === 0) {
+              <div class="state-placeholder">Este paciente no tiene citas registradas.</div>
+            } @else {
+              <div class="appt-list">
+                @for (appt of vm.appointments(); track appt.id) {
+                  <div class="appt-card">
+                    <!-- Date block -->
+                    <div class="appt-date">
+                      <div class="appt-date__day">{{ appt.startTime | date:'d':'UTC' }}</div>
+                      <div class="appt-date__month">{{ appt.startTime | date:'MMM':'UTC' }}</div>
+                      <div class="appt-date__year">{{ appt.startTime | date:'yyyy':'UTC' }}</div>
+                    </div>
+                    <!-- Info -->
+                    <div>
+                      <div class="appt-info__type">{{ appt.appointmentTypeName }}</div>
+                      <div class="appt-info__pro">{{ appt.professionalName }} · {{ appt.professionalSpecialty }}</div>
+                      <div class="appt-info__time">
+                        {{ appt.startTime | date:'HH:mm':'UTC' }} – {{ appt.endTime | date:'HH:mm':'UTC' }}
+                        · {{ appt.durationMinutes }} min
+                        · {{ appt.price | currency:'USD':'symbol':'1.0-0' }}
+                      </div>
+                      @if (appt.notes) {
+                        <div class="appt-info__notes">{{ appt.notes }}</div>
+                      }
+                    </div>
+                    <!-- Status -->
+                    <app-badge [variant]="apptBadge(appt.status)">{{ apptLabel(appt.status) }}</app-badge>
+                  </div>
+                }
+              </div>
+            }
+          }
+
+          <!-- ── FACTURAS ───────────────────────────────────────────────────── -->
+          @case ('invoices') {
+            @if (vm.invoices().length === 0) {
+              <div class="state-placeholder">Este paciente no tiene facturas registradas.</div>
+            } @else {
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Servicio</th>
+                    <th>Ítems</th>
+                    <th>Total</th>
+                    <th>Pagado</th>
+                    <th>Saldo</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (inv of vm.invoices(); track inv.id) {
+                    <tr>
+                      <td>
+                        @if (inv.issuedAt) {
+                          {{ inv.issuedAt | date:'dd/MM/yyyy':'UTC' }}
+                        } @else {
+                          <span style="color: var(--color-text-muted)">—</span>
+                        }
+                      </td>
+                      <td>
+                        @if (inv.appointmentTypeName) {
+                          {{ inv.appointmentTypeName }}
+                        } @else {
+                          <span style="color: var(--color-text-muted)">—</span>
+                        }
+                      </td>
+                      <td>{{ inv.items.length }}</td>
+                      <td><strong>{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+                      <td style="color: var(--color-success-600)">{{ inv.paid | currency:'USD':'symbol':'1.2-2' }}</td>
+                      <td>
+                        @if (inv.balance > 0) {
+                          <span style="color: var(--color-warning-700)">{{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+                        } @else {
+                          <span style="color: var(--color-success-600)">Saldado</span>
+                        }
+                      </td>
+                      <td>
+                        <app-badge [variant]="invoiceBadge(inv.status)">{{ invoiceLabel(inv.status) }}</app-badge>
+                      </td>
+                      <td>
+                        <button class="inv-toggle-btn" (click)="toggleInvoice(inv.id)">
+                          {{ expandedInvoiceId() === inv.id ? '▲ Ocultar' : '▼ Ver detalle' }}
+                        </button>
+                      </td>
+                    </tr>
+                    @if (expandedInvoiceId() === inv.id) {
+                      <tr class="inv-detail-row">
+                        <td colspan="8">
+                          <div class="inv-detail-inner">
+                            <!-- Items -->
+                            <div>
+                              <div class="inv-detail-section__title">Ítems facturados</div>
+                              <table class="inv-detail-table">
+                                <thead>
+                                  <tr>
+                                    <th>Descripción</th>
+                                    <th>Cant.</th>
+                                    <th>P. unitario</th>
+                                    <th>Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (item of inv.items; track $index) {
+                                    <tr>
+                                      <td>{{ item.description }}</td>
+                                      <td>{{ item.quantity }}</td>
+                                      <td>{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                                      <td><strong>{{ item.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                              @if (inv.notes) {
+                                <div class="inv-notes">{{ inv.notes }}</div>
+                              }
+                            </div>
+                            <!-- Payments -->
+                            <div>
+                              <div class="inv-detail-section__title">Pagos registrados</div>
+                              @if (inv.payments.length === 0) {
+                                <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic">Sin pagos registrados.</p>
+                              } @else {
+                                <table class="inv-detail-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Fecha</th>
+                                      <th>Método</th>
+                                      <th>Referencia</th>
+                                      <th>Monto</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    @for (pay of inv.payments; track $index) {
+                                      <tr>
+                                        <td>{{ pay.paidAt | date:'dd/MM/yyyy':'UTC' }}</td>
+                                        <td>{{ paymentMethodLabel(pay.method) }}</td>
+                                        <td>{{ pay.reference ?? '—' }}</td>
+                                        <td style="color: var(--color-success-600)">{{ pay.amount | currency:'USD':'symbol':'1.2-2' }}</td>
+                                      </tr>
+                                    }
+                                  </tbody>
+                                </table>
+                              }
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            }
+          }
+
+        }
+      </div>
+    </app-card>
+
+  }
+
+</div>

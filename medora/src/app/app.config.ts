@@ -1,10 +1,15 @@
 import {
   ApplicationConfig,
+  LOCALE_ID,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import localeEs from '@angular/common/locales/es';
+
+registerLocaleData(localeEs);
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
@@ -23,5 +28,8 @@ export const appConfig: ApplicationConfig = {
 
     // Override API URL — replace with environment variable in production
     { provide: API_URL, useValue: 'http://localhost:3000' },
+
+    // Spanish locale
+    { provide: LOCALE_ID, useValue: 'es' },
   ],
 };

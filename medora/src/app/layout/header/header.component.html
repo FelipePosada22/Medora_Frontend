@@ -3,10 +3,36 @@
 
   <div class="header__actions">
     @if (user()) {
-      <button class="header__user-btn" (click)="logout()" aria-label="Cerrar sesión">
-        <app-avatar [name]="user()!.name" size="sm" />
-        <span class="header__user-name">{{ user()!.name }}</span>
-      </button>
+      <div class="header__user-menu">
+        <!-- Trigger -->
+        <button class="header__user-btn" (click)="toggleMenu()" [attr.aria-expanded]="showMenu()">
+          <app-avatar [name]="user()!.name" size="sm" />
+          <span class="header__user-name">{{ user()!.name }}</span>
+          <span class="header__chevron" [class.header__chevron--open]="showMenu()">▾</span>
+        </button>
+
+        <!-- Backdrop -->
+        @if (showMenu()) {
+          <div class="header__backdrop" (click)="closeMenu()"></div>
+        }
+
+        <!-- Dropdown -->
+        @if (showMenu()) {
+          <div class="header__dropdown" role="menu">
+            <div class="header__dropdown-user">
+              <app-avatar [name]="user()!.name" size="sm" />
+              <div>
+                <div class="header__dropdown-name">{{ user()!.name }}</div>
+                <div class="header__dropdown-role">{{ user()!.role }}</div>
+              </div>
+            </div>
+            <hr class="header__dropdown-divider" />
+            <button class="header__dropdown-item header__dropdown-item--danger" (click)="logout()" role="menuitem">
+              <span>⎋</span> Cerrar sesión
+            </button>
+          </div>
+        }
+      </div>
     }
   </div>
 </header>

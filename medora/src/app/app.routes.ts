@@ -1,6 +1,11 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guards/auth.guard';
+import { roleGuard } from './core/auth/guards/role.guard';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+
+const ADMIN_ONLY   = roleGuard(['ADMIN']);
+const ADMIN_RECEP  = roleGuard(['ADMIN', 'DOCTOR', 'RECEPTIONIST']);
+const NO_AUXILIARY = roleGuard(['ADMIN', 'DOCTOR', 'RECEPTIONIST']);
 
 export const routes: Routes = [
   // ── Public routes ──────────────────────────────────────────────────────────
@@ -16,26 +21,21 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '',             redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+
+      // ADMIN | DOCTOR | RECEPTIONIST
       {
         path: 'dashboard',
+        canActivate: [NO_AUXILIARY],
         loadChildren: () =>
           import('./features/dashboard/dashboard.routes').then(m => m.dashboardRoutes),
       },
+
+      // All roles
       {
-        path: 'patients',
+        path: 'calendar',
         loadChildren: () =>
-          import('./features/patients/patients.routes').then(m => m.patientsRoutes),
-      },
-      {
-        path: 'professionals',
-        loadChildren: () =>
-          import('./features/professionals/professionals.routes').then(m => m.professionalsRoutes),
-      },
-      {
-        path: 'appointment-types',
-        loadChildren: () =>
-          import('./features/appointment-types/appointment-types.routes').then(m => m.appointmentTypesRoutes),
+          import('./features/calendar/calendar.routes').then(m => m.calendarRoutes),
       },
       {
         path: 'appointments',
@@ -43,29 +43,43 @@ export const routes: Routes = [
           import('./features/appointments/appointments.routes').then(m => m.appointmentsRoutes),
       },
       {
+        path: 'patients',
+        loadChildren: () =>
+          import('./features/patients/patients.routes').then(m => m.patientsRoutes),
+      },
+
+      // ADMIN | RECEPTIONIST
+      {
+        path: 'billing',
+        canActivate: [ADMIN_RECEP],
+        loadChildren: () =>
+          import('./features/billing/billing.routes').then(m => m.billingRoutes),
+      },
+
+      // ADMIN only
+      {
+        path: 'professionals',
+        canActivate: [ADMIN_ONLY],
+        loadChildren: () =>
+          import('./features/professionals/professionals.routes').then(m => m.professionalsRoutes),
+      },
+      {
+        path: 'appointment-types',
+        canActivate: [ADMIN_ONLY],
+        loadChildren: () =>
+          import('./features/appointment-types/appointment-types.routes').then(m => m.appointmentTypesRoutes),
+      },
+      {
         path: 'schedules',
+        canActivate: [ADMIN_ONLY],
         loadChildren: () =>
           import('./features/schedules/schedules.routes').then(m => m.schedulesRoutes),
       },
       {
-        path: 'calendar',
-        loadChildren: () =>
-          import('./features/calendar/calendar.routes').then(m => m.calendarRoutes),
-      },
-      {
         path: 'settings',
+        canActivate: [ADMIN_ONLY],
         loadChildren: () =>
           import('./features/settings/settings.routes').then(m => m.settingsRoutes),
-      },
-      {
-        path: 'billing',
-        loadChildren: () =>
-          import('./features/billing/billing.routes').then(m => m.billingRoutes),
-      },
-      {
-        path: 'attention',
-        loadChildren: () =>
-          import('./features/patient-attention/patient-attention.routes').then(m => m.patientAttentionRoutes),
       },
     ],
   },

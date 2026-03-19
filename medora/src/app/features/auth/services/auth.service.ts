@@ -14,32 +14,42 @@ import { AuthStateService } from '../../../core/auth/services/auth-state.service
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly authApi    = inject(AuthApi);
-  private readonly tokenSvc   = inject(TokenService);
-  private readonly authState  = inject(AuthStateService);
-  private readonly router     = inject(Router);
+  private readonly authApi   = inject(AuthApi);
+  private readonly tokenSvc  = inject(TokenService);
+  private readonly authState = inject(AuthStateService);
+  private readonly router    = inject(Router);
 
-  /**
-   * Authenticates the user and sets up the session.
-   * @returns Observable<void> that completes after the session is established.
-   */
   login(credentials: LoginCredentials): Observable<void> {
     localStorage.clear();
     return this.authApi.login(credentials).pipe(
       tap((dto: LoginResponseDto) => {
         const tokens = AuthMapper.toTokens(dto);
-        console.log("TOKEN GENERATED:", tokens.accessToken);
         this.tokenSvc.saveTokens(tokens.accessToken);
         this.authState.setUser(AuthMapper.toSessionUser(dto));
       }),
-      tap(() => this.router.navigate(['/dashboard'])),
+      tap((dto: LoginResponseDto) => {
+        const landing = dto.user.role === 'AUXILIARY' ? '/calendar' : '/dashboard';
+        this.router.navigate([landing]);
+      }),
       map(() => void 0),
     );
   }
 
-  /** Clears the session and redirects to login. */
+  /**
+   * Invalidates the token on the server, then clears local session.
+   * Local state is always cleared even if the API call fails.
+   */
   logout(): void {
-    this.authState.clearSession();
-    this.router.navigate(['/auth/login']);
+    this.authApi.logout().subscribe({
+      next: () => {
+        this.authState.clearSession();
+        this.router.navigate(['/auth/login']);
+      },
+      error: () => {
+        // API failed (network error, token already invalid, etc.) — clear locally anyway
+        this.authState.clearSession();
+        this.router.navigate(['/auth/login']);
+      },
+    });
   }
 }

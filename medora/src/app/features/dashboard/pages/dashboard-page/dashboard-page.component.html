@@ -4,112 +4,208 @@
   <div class="page__header">
     <div>
       <h1 class="page__title">Panel de Control</h1>
-      <p class="page__subtitle">Bienvenido de vuelta — aquí tienes el resumen del día</p>
+      <p class="page__subtitle">Resumen operativo de la clínica</p>
     </div>
-    <div class="quick-actions">
-      <app-button variant="secondary" size="sm" [routerLink]="['/patients']">Ver pacientes</app-button>
-      <app-button variant="primary"   size="sm" [routerLink]="['/appointments/new']">+ Nueva cita</app-button>
-    </div>
-  </div>
-
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
-    @for (kpi of kpis; track kpi.label) {
-      <app-card padding="none">
-        <div class="kpi-card">
-          <div class="kpi-card__icon">{{ kpi.icon }}</div>
-          <span class="kpi-card__label">{{ kpi.label }}</span>
-          <span class="kpi-card__value">{{ kpi.value }}</span>
-          <span class="kpi-card__trend"
-            [class.kpi-card__trend--up]="kpi.trendUp"
-            [class.kpi-card__trend--down]="!kpi.trendUp">
-            {{ kpi.trendUp ? '↑' : '↓' }} {{ kpi.trend }}
-          </span>
-        </div>
-      </app-card>
-    }
-  </div>
-
-  <!-- Main grid -->
-  <div class="dashboard-grid">
-
-    <!-- Upcoming appointments -->
-    <app-card>
-      <p class="section-title">Próximas Citas</p>
-
-      @if (vm.errorMessage()) {
-        <div class="alert alert--error">{{ vm.errorMessage() }}</div>
-      }
-
-      @if (vm.isLoading()) {
-        <div class="state-placeholder">Cargando citas...</div>
-      } @else {
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Paciente</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Tipo</th>
-              <th>Doctor</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (appt of vm.upcoming(); track appt.id) {
-              <tr>
-                <td>
-                  <div style="display:flex; align-items:center; gap:var(--space-2)">
-                    <app-avatar [name]="appt.patientName" size="xs" />
-                    {{ appt.patientName }}
-                  </div>
-                </td>
-                <td>{{ appt.startTime | date:'dd/MM/yyyy' }}</td>
-                <td><strong>{{ appt.startTime | date:'HH:mm' }}</strong></td>
-                <td>{{ appt.appointmentTypeName }}</td>
-                <td>{{ appt.professionalName }}</td>
-                <td>
-                  <app-badge [variant]="statusBadge(appt.status)">{{ statusLabel(appt.status) }}</app-badge>
-                </td>
-                <td>
-                  @if (appt.status === AppointmentStatus.CONFIRMED) {
-                    <app-button variant="primary" size="sm" (click)="vm.attend(appt.id)">Atender</app-button>
-                  }
-                  @if (appt.status === AppointmentStatus.SCHEDULED) {
-                    <app-button variant="ghost" size="sm" [routerLink]="['/appointments']">Ver</app-button>
-                  }
-                </td>
-              </tr>
-            }
-            @empty {
-              <tr>
-                <td colspan="7">
-                  <div class="state-placeholder">No hay citas próximas este mes</div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    </app-card>
-
-    <!-- Staff status -->
-    <app-card>
-      <p class="section-title">Estado de Staff</p>
-      <div class="staff-list">
-        @for (member of vm.staff(); track member.id) {
-          <div class="staff-item">
-            <app-avatar [name]="member.name" size="sm" />
-            <div class="staff-item__info">
-              <div class="staff-item__name">{{ member.name }}</div>
-              <div class="staff-item__specialty">{{ member.specialty }}</div>
-            </div>
-            <app-badge [variant]="staffVariant(member.status)">{{ member.status }}</app-badge>
-          </div>
+    <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap">
+      <!-- Period selector -->
+      <div class="period-tabs">
+        @for (opt of vm.periodOptions; track opt.key) {
+          <button class="period-tab" [class.period-tab--active]="vm.selectedPeriod() === opt.key"
+            (click)="vm.setPeriod(opt.key)">
+            {{ opt.label }}
+          </button>
         }
       </div>
+      <app-button variant="primary" size="sm" [routerLink]="['/appointments/new']">+ Nueva cita</app-button>
+    </div>
+  </div>
+
+  @if (vm.errorMessage()) {
+    <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+  }
+
+  @if (vm.isLoading()) {
+    <div class="state-placeholder">Cargando datos...</div>
+  } @else if (vm.data(); as d) {
+
+    <!-- KPI cards — today (always) -->
+    <div class="kpi-grid">
+      <app-card padding="none">
+        <div class="kpi-card">
+          <div class="kpi-card__icon kpi-card__icon--blue">📅</div>
+          <div class="kpi-card__label">Citas hoy</div>
+          <div class="kpi-card__value">{{ d.appointments.today.total }}</div>
+          <div class="kpi-card__sub">
+            {{ d.appointments.today.completed }} completadas ·
+            {{ d.appointments.today.scheduled + d.appointments.today.confirmed }} pendientes
+          </div>
+        </div>
+      </app-card>
+
+      <app-card padding="none">
+        <div class="kpi-card">
+          <div class="kpi-card__icon kpi-card__icon--green">💰</div>
+          <div class="kpi-card__label">Ingresos hoy</div>
+          <div class="kpi-card__value">{{ d.revenue.today | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="kpi-card__sub">Pagos registrados hoy</div>
+        </div>
+      </app-card>
+
+      <app-card padding="none">
+        <div class="kpi-card">
+          <div class="kpi-card__icon kpi-card__icon--blue">✨</div>
+          <div class="kpi-card__label">Nuevos pacientes</div>
+          <div class="kpi-card__value">{{ d.patients.newThisMonth }}</div>
+          <div class="kpi-card__sub">Este mes calendario · {{ d.patients.total }} total</div>
+        </div>
+      </app-card>
+
+      <app-card padding="none">
+        <div class="kpi-card">
+          <div class="kpi-card__icon kpi-card__icon--amber">⏳</div>
+          <div class="kpi-card__label">Saldo pendiente</div>
+          <div class="kpi-card__value">{{ d.revenue.pendingAmount | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="kpi-card__sub">{{ d.revenue.pendingInvoicesCount }} factura(s) por cobrar</div>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Period stats strip -->
+    <app-card padding="none">
+      <div style="padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border)">
+        <span style="font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); text-transform: uppercase; letter-spacing:.04em; color: var(--color-text-muted)">
+          Período: {{ vm.periodLabel() }}
+        </span>
+      </div>
+      <div class="stats-strip">
+        <div class="stat-cell">
+          <div class="stat-cell__label">Citas en período</div>
+          <div class="stat-cell__value">{{ d.appointments.inPeriod.total }}</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__label">Completadas</div>
+          <div class="stat-cell__value stat-cell__value--green">{{ d.appointments.inPeriod.byStatus['COMPLETED'] ?? 0 }}</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__label">Canceladas / No asistió</div>
+          <div class="stat-cell__value stat-cell__value--amber">
+            {{ (d.appointments.inPeriod.byStatus['CANCELLED'] ?? 0) + (d.appointments.inPeriod.byStatus['NO_SHOW'] ?? 0) }}
+          </div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__label">Pacientes atendidos</div>
+          <div class="stat-cell__value">{{ d.patients.attendedInPeriod }}</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell__label">Ingresos del período</div>
+          <div class="stat-cell__value stat-cell__value--green">{{ d.revenue.inPeriod | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+
+      <!-- Bar chart -->
+      @if (vm.byDay().length > 0) {
+        <div class="bar-chart">
+          @for (day of vm.byDay(); track day.date) {
+            <div class="bar-chart__bar" [style.height.%]="day.pct"
+              [title]="day.date + ': ' + day.count + ' citas'">
+            </div>
+          }
+        </div>
+      }
     </app-card>
 
-  </div>
+    <!-- Main grid -->
+    <div class="dashboard-grid">
+
+      <!-- Today's appointments -->
+      <app-card>
+        <div class="section-header">
+          <p class="section-title">Citas de hoy ({{ d.appointments.today.total }})</p>
+          <a [routerLink]="['/appointments']" style="font-size:var(--font-size-sm); color:var(--color-primary-600); text-decoration:none">
+            Ver todas →
+          </a>
+        </div>
+
+        @if (vm.todayList().length === 0) {
+          <div class="state-placeholder">No hay citas registradas para hoy.</div>
+        } @else {
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Tipo</th>
+                <th>Profesional</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (appt of vm.todayList(); track appt.id) {
+                <tr>
+                  <td><strong>{{ appt.startTime | date:'HH:mm':'UTC' }}</strong></td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:var(--space-2)">
+                      <app-avatar [name]="appt.patient.name" size="xs" />
+                      {{ appt.patient.name }}
+                    </div>
+                  </td>
+                  <td>{{ appt.appointmentType.name }}</td>
+                  <td>{{ appt.professional.name }}</td>
+                  <td><app-badge [variant]="statusBadge(appt.status)">{{ statusLabel(appt.status) }}</app-badge></td>
+                  <td>
+                    @if (appt.status === AppointmentStatus.CONFIRMED || appt.status === AppointmentStatus.SCHEDULED) {
+                      <app-button variant="ghost" size="sm" (click)="vm.attend(appt.id)">Completar</app-button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </app-card>
+
+      <!-- Sidebar -->
+      <div class="sidebar-stack">
+
+        <!-- Top professionals -->
+        <app-card>
+          <p class="section-title" style="margin-bottom: var(--space-4)">Top profesionales</p>
+          @if (d.topProfessionals.length === 0) {
+            <p style="font-size:var(--font-size-sm); color:var(--color-text-muted); font-style:italic">Sin datos en el período.</p>
+          } @else {
+            @for (entry of d.topProfessionals; track entry.professional.id; let i = $index) {
+              <div class="pro-item">
+                <div class="pro-item__rank">{{ i + 1 }}</div>
+                <div class="pro-item__info">
+                  <div class="pro-item__name">{{ entry.professional.name }}</div>
+                  <div class="pro-item__spec">{{ entry.professional.specialty }}</div>
+                </div>
+                <div class="pro-item__count">{{ entry.appointmentsCompleted }}</div>
+              </div>
+            }
+          }
+        </app-card>
+
+        <!-- Pending invoices -->
+        @if (d.revenue.pendingInvoices.length > 0) {
+          <app-card>
+            <div class="section-header">
+              <p class="section-title">Facturas pendientes</p>
+              <a [routerLink]="['/billing']" style="font-size:var(--font-size-sm); color:var(--color-primary-600); text-decoration:none">Ver →</a>
+            </div>
+            @for (inv of d.revenue.pendingInvoices; track inv.id) {
+              <div class="inv-item">
+                <div class="inv-item__name">{{ inv.patient.name }}</div>
+                <div class="inv-item__amount">{{ inv.total | currency:'USD':'symbol':'1.0-0' }}</div>
+              </div>
+            }
+          </app-card>
+        }
+
+      </div>
+    </div>
+
+  }
+
 </div>

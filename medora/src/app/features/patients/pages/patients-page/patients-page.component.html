@@ -36,7 +36,7 @@
             <app-input label="Nombre completo" formControlName="name" />
             <app-input label="Teléfono" formControlName="phone" />
             <app-input label="Email" formControlName="email" />
-            <app-input label="Fecha de nacimiento" formControlName="birthdate" />
+            <app-input label="Fecha de nacimiento" type="date" formControlName="birthdate" />
             <app-input label="Notas" formControlName="notes" />
           </div>
           <div class="form-actions">
@@ -78,6 +78,7 @@
               <td>{{ patient.birthdate | date:'dd/MM/yyyy' }}</td>
               <td>
                 <div class="row-actions">
+                  <a [routerLink]="['/patients', patient.id]" class="link-btn">Ver</a>
                   <app-button variant="ghost" size="sm" (click)="vm.openEdit(patient)">Editar</app-button>
                   <app-button variant="danger" size="sm" (click)="vm.remove(patient.id)">Eliminar</app-button>
                 </div>

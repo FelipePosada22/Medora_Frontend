@@ -158,6 +158,77 @@ import { HeaderComponent } from '../header/header.component';
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
     }
+    :host ::ng-deep .header__chevron {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      transition: transform var(--transition-fast);
+      line-height: 1;
+    }
+    :host ::ng-deep .header__chevron--open {
+      transform: rotate(180deg);
+    }
+
+    /* Dropdown */
+    :host ::ng-deep .header__user-menu {
+      position: relative;
+    }
+    :host ::ng-deep .header__backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+    }
+    :host ::ng-deep .header__dropdown {
+      position: absolute;
+      top: calc(100% + var(--space-2));
+      right: 0;
+      min-width: 220px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      z-index: 11;
+      overflow: hidden;
+    }
+    :host ::ng-deep .header__dropdown-user {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+    :host ::ng-deep .header__dropdown-name {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+    :host ::ng-deep .header__dropdown-role {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      margin-top: 1px;
+    }
+    :host ::ng-deep .header__dropdown-divider {
+      border: none;
+      border-top: 1px solid var(--color-border);
+      margin: 0;
+    }
+    :host ::ng-deep .header__dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background var(--transition-fast);
+      &:hover { background: var(--color-neutral-50); }
+    }
+    :host ::ng-deep .header__dropdown-item--danger {
+      color: var(--color-error-600);
+      &:hover { background: var(--color-error-50, #fef2f2); }
+    }
   `],
 })
 export class MainLayoutComponent {}

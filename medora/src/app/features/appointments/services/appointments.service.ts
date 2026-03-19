@@ -20,8 +20,8 @@ export class AppointmentsService {
     return this.api.create(payload).pipe(map(AppointmentMapper.toDomain));
   }
 
-  update(id: string, payload: Partial<AppointmentPayload>): Observable<Appointment> {
-    return this.api.update(id, payload).pipe(map(AppointmentMapper.toDomain));
+  update(id: string, payload: Partial<AppointmentPayload>): Observable<void> {
+    return this.api.update(id, payload);
   }
 
   remove(id: string): Observable<void> {

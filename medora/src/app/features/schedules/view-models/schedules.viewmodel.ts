@@ -6,6 +6,7 @@ import { SchedulesService } from '../services/schedules.service';
 import { ProfessionalsService } from '../../professionals/services/professionals.service';
 import { Professional } from '../../professionals/models/professional.model';
 import { Schedule, DayOfWeek } from '../models/schedule.model';
+import { ToastService } from '../../../core/toast/toast.service';
 
 export interface DaySlot {
   scheduleId: string | null; // null if day is not enabled
@@ -46,6 +47,7 @@ export class SchedulesViewModel {
   private readonly schedulesSvc     = inject(SchedulesService);
   private readonly professionalsSvc = inject(ProfessionalsService);
   private readonly fb               = inject(FormBuilder);
+  private readonly toast            = inject(ToastService);
 
   readonly items        = signal<ProfessionalWithSchedule[]>([]);
   readonly isLoading    = signal(false);
@@ -147,15 +149,29 @@ export class SchedulesViewModel {
         endTime:        raw.endTime,
       })
       .subscribe({
-        next: () => { this.closeAddForm(); this.reload(); this.isSaving.set(false); },
-        error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+        next: () => {
+          this.closeAddForm();
+          this.reload();
+          this.isSaving.set(false);
+          this.toast.success('Horario guardado correctamente.');
+        },
+        error: err => {
+          const msg = err?.error?.message ?? 'Error al guardar.';
+          this.formError.set(msg);
+          this.toast.error(msg);
+          this.isSaving.set(false);
+        },
       });
   }
 
   removeScheduleEntry(scheduleId: string): void {
     this.schedulesSvc.remove(scheduleId).subscribe({
-      next: () => this.reload(),
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+      next: () => { this.reload(); this.toast.success('Horario eliminado.'); },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al eliminar.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 }

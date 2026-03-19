@@ -70,8 +70,8 @@ export class AppointmentsApi {
     return this.http.post<AppointmentDto>(this.baseUrl, payload);
   }
 
-  update(id: string, payload: Partial<AppointmentPayload>): Observable<AppointmentDto> {
-    return this.http.put<AppointmentDto>(`${this.baseUrl}/${id}`, payload);
+  update(id: string, payload: Partial<AppointmentPayload>): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${id}`, payload);
   }
 
   remove(id: string): Observable<void> {

@@ -30,8 +30,8 @@ export class ProfessionalsApi {
     return this.http.post<ProfessionalDto>(this.baseUrl, payload);
   }
 
-  update(id: string, payload: Partial<ProfessionalPayload>): Observable<ProfessionalDto> {
-    return this.http.put<ProfessionalDto>(`${this.baseUrl}/${id}`, payload);
+  update(id: string, payload: Partial<ProfessionalPayload>): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${id}`, payload);
   }
 
   remove(id: string): Observable<void> {

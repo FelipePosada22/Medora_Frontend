@@ -28,8 +28,8 @@ export class AppointmentTypesApi {
     return this.http.post<AppointmentTypeDto>(this.baseUrl, payload);
   }
 
-  update(id: string, payload: Partial<AppointmentTypePayload>): Observable<AppointmentTypeDto> {
-    return this.http.put<AppointmentTypeDto>(`${this.baseUrl}/${id}`, payload);
+  update(id: string, payload: Partial<AppointmentTypePayload>): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${id}`, payload);
   }
 
   remove(id: string): Observable<void> {

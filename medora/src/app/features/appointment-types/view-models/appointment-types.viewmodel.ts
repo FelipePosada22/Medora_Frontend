@@ -1,14 +1,16 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { Subject, switchMap, startWith, tap, catchError, EMPTY } from 'rxjs';
+import { Subject, switchMap, startWith, tap, catchError, EMPTY, Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppointmentTypesService } from '../services/appointment-types.service';
 import { AppointmentType } from '../models/appointment-type.model';
+import { ToastService } from '../../../core/toast/toast.service';
 
 @Injectable()
 export class AppointmentTypesViewModel {
   private readonly service = inject(AppointmentTypesService);
-  private readonly fb = inject(FormBuilder);
+  private readonly fb      = inject(FormBuilder);
+  private readonly toast   = inject(ToastService);
 
   readonly types = signal<AppointmentType[]>([]);
   readonly isLoading = signal(false);
@@ -109,17 +111,21 @@ export class AppointmentTypesViewModel {
       name: name,
       price: Number(price),
     };
-    const op$ = this.editingId()
+    const op$: Observable<unknown> = this.editingId()
       ? this.service.update(this.editingId()!, payload)
       : this.service.create(payload);
+    const isEditing = !!this.editingId();
     op$.subscribe({
       next: () => {
         this.closeForm();
         this.reload();
         this.isSaving.set(false);
+        this.toast.success(isEditing ? 'Tipo de cita actualizado.' : 'Tipo de cita creado correctamente.');
       },
       error: (err) => {
-        this.formError.set(err?.error?.message ?? 'Error al guardar.');
+        const msg = err?.error?.message ?? 'Error al guardar.';
+        this.formError.set(msg);
+        this.toast.error(msg);
         this.isSaving.set(false);
       },
     });
@@ -127,8 +133,12 @@ export class AppointmentTypesViewModel {
 
   remove(id: string): void {
     this.service.remove(id).subscribe({
-      next: () => this.reload(),
-      error: (err) => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+      next: () => { this.reload(); this.toast.success('Tipo de cita eliminado.'); },
+      error: (err) => {
+        const msg = err?.error?.message ?? 'Error al eliminar.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 }

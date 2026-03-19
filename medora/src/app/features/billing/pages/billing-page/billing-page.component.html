@@ -5,92 +5,365 @@
       <h1 class="page__title">Facturación</h1>
       <p class="page__subtitle">Gestión de cobros e ingresos</p>
     </div>
-    <app-button variant="primary" size="sm">+ Nueva factura</app-button>
+    <app-button variant="primary" size="sm" (click)="vm.openCreatePanel()">+ Nueva factura</app-button>
   </div>
+
+  @if (vm.errorMessage()) {
+    <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+  }
 
   <!-- Stats -->
   <div class="stats-grid">
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Ingresos totales</div>
-        <div class="stat-card__value">{{ stats().total | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value">{{ vm.stats().total | currency:'USD':'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Pagado</div>
-        <div class="stat-card__value stat-card__value--green">{{ stats().paid | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value stat-card__value--green">{{ vm.stats().paid | currency:'USD':'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
-        <div class="stat-card__label">Pendiente</div>
-        <div class="stat-card__value stat-card__value--amber">{{ stats().pending | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__label">Pendiente / Emitido</div>
+        <div class="stat-card__value stat-card__value--amber">{{ vm.stats().pending | currency:'USD':'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Vencido</div>
-        <div class="stat-card__value stat-card__value--red">{{ stats().overdue | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value stat-card__value--red">{{ vm.stats().overdue | currency:'USD':'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
   </div>
 
   <!-- Invoice table -->
   <app-card>
-    <div class="page__toolbar" style="margin-bottom:var(--space-2)">
-      <input class="search-input" type="search" placeholder="Buscar paciente..." (input)="onSearch($event)" />
+    <div class="page__toolbar" style="margin-bottom: var(--space-2)">
+      <input class="search-input" type="search" placeholder="Buscar paciente..."
+        [value]="vm.searchTerm()"
+        (input)="vm.searchTerm.set($any($event.target).value)" />
     </div>
 
     <div class="status-tabs">
-      @for (tab of tabs; track tab.value) {
-        <button
-          class="status-tab"
-          [class.status-tab--active]="activeFilter() === tab.value"
-          (click)="setFilter(tab.value)">
+      @for (tab of vm.tabs; track tab.value) {
+        <button class="status-tab"
+          [class.status-tab--active]="vm.activeFilter() === tab.value"
+          (click)="vm.activeFilter.set(tab.value)">
           {{ tab.label }}
         </button>
       }
     </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Factura</th>
-          <th>Paciente</th>
-          <th>Servicio</th>
-          <th>Fecha</th>
-          <th>Monto</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (inv of invoices(); track inv.id) {
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando facturas...</div>
+    } @else {
+      <table class="table">
+        <thead>
           <tr>
-            <td><strong>{{ inv.id }}</strong></td>
-            <td>{{ inv.patient }}</td>
-            <td>{{ inv.service }}</td>
-            <td>{{ inv.date | date:'dd/MM/yyyy' }}</td>
-            <td><strong>{{ inv.amount | currency:'USD':'symbol':'1.2-2' }}</strong></td>
-            <td>
-              <app-badge [variant]="statusVariant(inv.status)">{{ statusLabel(inv.status) }}</app-badge>
-            </td>
-            <td>
-              <div class="row-actions">
-                <app-button variant="ghost" size="sm">Ver</app-button>
-                @if (inv.status === 'pending' || inv.status === 'overdue') {
-                  <app-button variant="primary" size="sm">Cobrar</app-button>
-                }
-              </div>
-            </td>
+            <th>Paciente</th>
+            <th>Ítems</th>
+            <th>Total</th>
+            <th>Saldo</th>
+            <th>Vencimiento</th>
+            <th>Estado</th>
+            <th></th>
           </tr>
-        }
-        @empty {
-          <tr><td colspan="7"><div class="state-placeholder">Sin facturas para este filtro</div></td></tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (inv of vm.filteredInvoices(); track inv.id) {
+            <tr>
+              <td>
+                <strong>{{ inv.patientName }}</strong>
+                <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
+                  {{ inv.createdAt | date:'dd/MM/yyyy' }}
+                </div>
+              </td>
+              <td>{{ inv.items.length }}</td>
+              <td><strong>{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              <td>
+                @if (inv.balance > 0) {
+                  <span style="color: var(--color-warning-700)">{{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+                } @else {
+                  <span style="color: var(--color-success-600)">Saldado</span>
+                }
+              </td>
+              <td>
+                @if (inv.dueDate) {
+                  {{ inv.dueDate | date:'dd/MM/yyyy' }}
+                } @else {
+                  <span style="color: var(--color-text-muted)">—</span>
+                }
+              </td>
+              <td>
+                <app-badge [variant]="statusBadge(inv.status)">{{ statusLabel(inv.status) }}</app-badge>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <app-button variant="ghost" size="sm" (click)="vm.openDetail(inv)">Ver</app-button>
+                </div>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="7">
+                <div class="state-placeholder">Sin facturas para este filtro</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
   </app-card>
 
 </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     CREATE PANEL
+     ══════════════════════════════════════════════════════════════════════════ -->
+@if (vm.showCreatePanel()) {
+  <div class="panel-backdrop" (click)="vm.closeCreatePanel()"></div>
+
+  <aside class="panel" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title">Nueva factura</span>
+      <button class="panel-close" (click)="vm.closeCreatePanel()">✕</button>
+    </div>
+
+    <form class="panel-body" [formGroup]="vm.createForm" (ngSubmit)="vm.submitCreate()">
+
+      <div class="form-group">
+        <app-search-select
+          label="Paciente"
+          placeholder="Buscar paciente..."
+          [required]="true"
+          [items]="vm.patientsList()"
+          [hasError]="!!(vm.createForm.get('patientId')?.invalid && vm.createForm.get('patientId')?.touched)"
+          formControlName="patientId" />
+        @if (vm.createForm.get('patientId')?.invalid && vm.createForm.get('patientId')?.touched) {
+          <span class="form-error">Selecciona un paciente</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Fecha de vencimiento</label>
+        <input class="form-input" type="date" formControlName="dueDate" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" formControlName="notes" placeholder="Observaciones opcionales..."></textarea>
+      </div>
+
+      <!-- Items -->
+      <div>
+        <div class="items-header">
+          <span class="items-section-label">Ítems de la factura</span>
+          <app-button type="button" variant="ghost" size="sm" (click)="vm.addItem()">+ Agregar ítem</app-button>
+        </div>
+
+        <div class="item-row" style="margin-top: var(--space-2)">
+          <div class="item-col-label">Descripción *</div>
+          <div class="item-col-label">Cant.</div>
+          <div class="item-col-label">Precio unit.</div>
+          <div></div>
+        </div>
+
+        @for (ctrl of vm.itemControls; track $index) {
+          <div class="item-row" [formGroup]="$any(ctrl)">
+            <input class="form-input" type="text" formControlName="description" placeholder="Descripción" />
+            <input class="form-input" type="number" formControlName="quantity" min="1" />
+            <input class="form-input" type="number" formControlName="unitPrice" min="0" step="0.01" />
+            <button type="button" class="item-remove"
+              [disabled]="vm.itemControls.length === 1"
+              (click)="vm.removeItem($index)">✕</button>
+          </div>
+        }
+
+        <div class="items-total">
+          Total estimado: {{ vm.getCreateTotal() | currency:'USD':'symbol':'1.2-2' }}
+        </div>
+      </div>
+
+    </form>
+
+    <div class="panel-footer">
+      <app-button variant="ghost" size="sm" (click)="vm.closeCreatePanel()">Cancelar</app-button>
+      <app-button variant="primary" size="sm" [disabled]="vm.isSaving()" (click)="vm.submitCreate()">
+        {{ vm.isSaving() ? 'Guardando...' : 'Crear factura' }}
+      </app-button>
+    </div>
+  </aside>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DETAIL PANEL
+     ══════════════════════════════════════════════════════════════════════════ -->
+@if (vm.selectedInvoice(); as inv) {
+  <div class="panel-backdrop" (click)="vm.closeDetail()"></div>
+
+  <aside class="panel" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Detalle de factura</div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px;">
+          Creada el {{ inv.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+      </div>
+      <button class="panel-close" (click)="vm.closeDetail()">✕</button>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span class="detail-label">Paciente</span>
+          <span class="detail-value">{{ inv.patientName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Estado</span>
+          <app-badge [variant]="statusBadge(inv.status)">{{ statusLabel(inv.status) }}</app-badge>
+        </div>
+        @if (inv.dueDate) {
+          <div class="detail-row">
+            <span class="detail-label">Vencimiento</span>
+            <span class="detail-value">{{ inv.dueDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+        }
+        @if (inv.issuedAt) {
+          <div class="detail-row">
+            <span class="detail-label">Emitida el</span>
+            <span class="detail-value">{{ inv.issuedAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+        }
+      </div>
+
+      @if (inv.notes) {
+        <div class="detail-row">
+          <span class="detail-label">Notas</span>
+          <span class="detail-value">{{ inv.notes }}</span>
+        </div>
+      }
+
+      <hr class="detail-divider" />
+
+      <!-- Items table -->
+      <div>
+        <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Ítems</div>
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th class="text-right">Cant.</th>
+              <th class="text-right">P. Unit.</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of inv.items; track item.description) {
+              <tr>
+                <td>{{ item.description }}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td class="text-right">{{ item.total | currency:'USD':'symbol':'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-right">Total</td>
+              <td class="text-right">{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Payments -->
+      @if (inv.payments.length > 0) {
+        <div>
+          <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Pagos registrados</div>
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Método</th>
+                <th>Referencia</th>
+                <th class="text-right">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of inv.payments; track p.id) {
+                <tr>
+                  <td>{{ p.paidAt | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ vm.statusLabel(p.method) }}</td>
+                  <td>{{ p.reference ?? '—' }}</td>
+                  <td class="text-right">{{ p.amount | currency:'USD':'symbol':'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- Balance -->
+      <div class="balance-box">
+        <span>Saldo pendiente</span>
+        <span class="balance-amount">{{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+      </div>
+
+      <!-- Status actions — hidden for doctors (read-only on issued/paid) -->
+      @if (!isDoctor() && inv.status !== InvoiceStatus.PAID && inv.status !== InvoiceStatus.CANCELLED) {
+        <div>
+          <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Acciones</div>
+          <div class="status-actions">
+            @if (inv.status === InvoiceStatus.DRAFT) {
+              <app-button variant="primary" size="sm" (click)="vm.changeStatus(InvoiceStatus.ISSUED)">Emitir factura</app-button>
+            }
+            <app-button variant="ghost" size="sm" (click)="vm.changeStatus(InvoiceStatus.CANCELLED)">Cancelar factura</app-button>
+          </div>
+        </div>
+      }
+
+      <!-- Payment form — receptionist / admin only -->
+      @if (!isDoctor() && (inv.status === InvoiceStatus.ISSUED || inv.status === InvoiceStatus.OVERDUE) && inv.balance > 0) {
+        <div class="payment-section">
+          <div class="payment-section-title">Registrar pago</div>
+          <form [formGroup]="vm.paymentForm" (ngSubmit)="vm.submitPayment()">
+            <div class="payment-grid">
+              <div class="form-group">
+                <label class="form-label form-label--required">Monto</label>
+                <input class="form-input" type="number" formControlName="amount" min="0.01" step="0.01"
+                  [placeholder]="inv.balance.toString()" />
+                @if (vm.paymentForm.get('amount')?.invalid && vm.paymentForm.get('amount')?.touched) {
+                  <span class="form-error">Ingresa un monto válido</span>
+                }
+              </div>
+              <div class="form-group">
+                <label class="form-label form-label--required">Método</label>
+                <select class="form-select" formControlName="method">
+                  @for (m of vm.paymentMethods; track m.value) {
+                    <option [value]="m.value">{{ m.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: var(--space-3)">
+              <label class="form-label">Referencia</label>
+              <input class="form-input" type="text" formControlName="reference" placeholder="N.° recibo, transferencia..." />
+            </div>
+            <div style="text-align: right; margin-top: var(--space-3)">
+              <app-button type="submit" variant="primary" size="sm" [disabled]="vm.isAddingPayment()">
+                {{ vm.isAddingPayment() ? 'Registrando...' : 'Registrar pago' }}
+              </app-button>
+            </div>
+          </form>
+        </div>
+      }
+
+    </div>
+  </aside>
+}

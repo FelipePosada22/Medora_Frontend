@@ -7,6 +7,7 @@ import { AppointmentTypesService } from '../../appointment-types/services/appoin
 import { Appointment, AppointmentStatus } from '../../appointments/models/appointment.model';
 import { Professional } from '../../professionals/models/professional.model';
 import { AppointmentType } from '../../appointment-types/models/appointment-type.model';
+import { ToastService } from '../../../core/toast/toast.service';
 
 export type CalendarView = 'day' | 'week' | 'month';
 
@@ -40,6 +41,7 @@ export class CalendarViewModel {
   private readonly appointmentsService     = inject(AppointmentsService);
   private readonly professionalsService    = inject(ProfessionalsService);
   private readonly appointmentTypesService = inject(AppointmentTypesService);
+  private readonly toast                   = inject(ToastService);
 
   readonly activeView    = signal<CalendarView>('week');
   readonly referenceDate = signal<Date>(this.startOfDay(new Date()));
@@ -243,11 +245,17 @@ export class CalendarViewModel {
     const appt = this.selectedAppointment();
     if (!appt) return;
     this.appointmentsService.update(appt.id, { status }).subscribe({
-      next: updated => {
-        this.appointments.update(list => list.map(a => a.id === updated.id ? updated : a));
+      next: () => {
+        const updated = { ...appt, status };
+        this.appointments.update(list => list.map(a => a.id === appt.id ? updated : a));
         this.selectedAppointment.set(updated);
+        this.toast.success('Estado de cita actualizado.');
       },
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al actualizar estado.'),
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al actualizar estado.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 

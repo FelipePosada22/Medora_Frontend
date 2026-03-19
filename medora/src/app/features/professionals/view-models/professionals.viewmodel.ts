@@ -1,14 +1,16 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, Subject, switchMap, startWith, tap, catchError, EMPTY } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, startWith, tap, catchError, EMPTY, Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProfessionalsService } from '../services/professionals.service';
 import { Professional } from '../models/professional.model';
+import { ToastService } from '../../../core/toast/toast.service';
 
 @Injectable()
 export class ProfessionalsViewModel {
   private readonly service = inject(ProfessionalsService);
   private readonly fb      = inject(FormBuilder);
+  private readonly toast   = inject(ToastService);
 
   readonly professionals    = signal<Professional[]>([]);
   readonly isLoading        = signal(false);
@@ -114,19 +116,34 @@ export class ProfessionalsViewModel {
     if (this.form.invalid) return;
     this.isSaving.set(true);
     const payload = this.form.getRawValue();
-    const op$ = this.editingId()
+    const op$: Observable<unknown> = this.editingId()
       ? this.service.update(this.editingId()!, payload)
       : this.service.create(payload);
+    const isEditing = !!this.editingId();
     op$.subscribe({
-      next: () => { this.closeForm(); this.reload(); this.isSaving.set(false); },
-      error: err => { this.formError.set(err?.error?.message ?? 'Error al guardar.'); this.isSaving.set(false); },
+      next: () => {
+        this.closeForm();
+        this.reload();
+        this.isSaving.set(false);
+        this.toast.success(isEditing ? 'Profesional actualizado correctamente.' : 'Profesional creado correctamente.');
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al guardar.';
+        this.formError.set(msg);
+        this.toast.error(msg);
+        this.isSaving.set(false);
+      },
     });
   }
 
   remove(id: string): void {
     this.service.remove(id).subscribe({
-      next: () => this.reload(),
-      error: err => this.errorMessage.set(err?.error?.message ?? 'Error al eliminar.'),
+      next: () => { this.reload(); this.toast.success('Profesional eliminado.'); },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al eliminar.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 }

@@ -1,11 +1,12 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { AuthStateService } from '../../../../core/auth/services/auth-state.service';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { CalendarViewModel } from '../../view-models/calendar.viewmodel';
-import { AppointmentStatus, APPOINTMENT_STATUS_LABELS } from '../../../appointments/models/appointment.model';
+import { Appointment, AppointmentStatus, APPOINTMENT_STATUS_LABELS } from '../../../appointments/models/appointment.model';
 import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
 @Component({
@@ -297,6 +298,12 @@ export class CalendarPageComponent {
   protected readonly vm               = inject(CalendarViewModel);
   protected readonly AppointmentStatus = AppointmentStatus;
 
+  private  readonly authState = inject(AuthStateService);
+  protected readonly canBill  = computed(() => {
+    const role = this.authState.user()?.role;
+    return role === 'ADMIN' || role === 'DOCTOR' || role === 'RECEPTIONIST';
+  });
+
   protected readonly MONTH_HEADERS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   protected onProfessionalFilter(id: string): void {
@@ -321,5 +328,15 @@ export class CalendarPageComponent {
 
   protected statusLabel(status: AppointmentStatus): string {
     return APPOINTMENT_STATUS_LABELS[status] ?? status;
+  }
+
+  protected draftQueryParams(appt: Appointment): Record<string, string | number> {
+    const type = this.vm.appointmentTypes().find(t => t.id === appt.appointmentTypeId);
+    return {
+      patientId:          appt.patientId,
+      appointmentId:      appt.id,
+      serviceDescription: appt.appointmentTypeName,
+      ...(type ? { servicePrice: type.price } : {}),
+    };
   }
 }

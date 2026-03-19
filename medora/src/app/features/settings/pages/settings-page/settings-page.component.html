@@ -30,87 +30,144 @@
       <!-- Clinic tab -->
       @if (activeTab() === 'clinic') {
         <app-card>
-          <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin-bottom:var(--space-4)">Información de la clínica</p>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-4)">
+            <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin:0">Información de la clínica</p>
+            @if (clinicVm.slug()) {
+              <span style="font-size:var(--font-size-xs); color:var(--color-text-muted)">Slug: {{ clinicVm.slug() }}</span>
+            }
+          </div>
 
-          @if (savedOk()) {
-            <div class="alert alert--success" style="margin-bottom:var(--space-4)">Cambios guardados correctamente.</div>
+          @if (clinicVm.isLoading()) {
+            <div class="state-placeholder">Cargando datos de la clínica...</div>
+          } @else {
+            <form [formGroup]="clinicVm.form" (ngSubmit)="clinicVm.save()">
+              <div class="form-grid" style="margin-bottom:var(--space-4)">
+                <app-input label="Nombre de la clínica" formControlName="name" />
+                <app-input label="Teléfono"              formControlName="phone" />
+                <app-input label="Email"                 formControlName="email" type="email" />
+                <app-input label="Dirección"             formControlName="address" />
+                <div class="form-field">
+                  <label class="form-label">Zona horaria</label>
+                  <select class="form-select" formControlName="timezone">
+                    <option value="">— Sin especificar —</option>
+                    <option value="America/New_York">America/New_York (EST)</option>
+                    <option value="America/Chicago">America/Chicago (CST)</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                    <option value="America/Bogota">America/Bogota (COT)</option>
+                    <option value="America/Mexico_City">America/Mexico_City (CST)</option>
+                    <option value="America/Argentina/Buenos_Aires">America/Buenos_Aires (ART)</option>
+                    <option value="America/Lima">America/Lima (PET)</option>
+                    <option value="America/Santiago">America/Santiago (CLT)</option>
+                    <option value="Europe/Madrid">Europe/Madrid (CET)</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Moneda</label>
+                  <select class="form-select" formControlName="currency">
+                    <option value="">— Sin especificar —</option>
+                    <option value="USD">USD — Dólar americano</option>
+                    <option value="COP">COP — Peso colombiano</option>
+                    <option value="MXN">MXN — Peso mexicano</option>
+                    <option value="ARS">ARS — Peso argentino</option>
+                    <option value="PEN">PEN — Sol peruano</option>
+                    <option value="CLP">CLP — Peso chileno</option>
+                    <option value="EUR">EUR — Euro</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:flex-end">
+                <app-button variant="primary" type="submit" [loading]="clinicVm.isSaving()">Guardar cambios</app-button>
+              </div>
+            </form>
           }
-
-          <form [formGroup]="clinicForm" (ngSubmit)="saveClinic()">
-            <div class="form-grid" style="margin-bottom:var(--space-4)">
-              <app-input label="Nombre de la clínica" formControlName="name" />
-              <app-input label="Teléfono"              formControlName="phone" />
-              <app-input label="Email"                 formControlName="email" type="email" />
-              <app-input label="Dirección"             formControlName="address" />
-              <div class="form-field">
-                <label class="form-label">Zona horaria</label>
-                <select class="form-select" formControlName="timezone">
-                  <option value="America/New_York">America/New_York (EST)</option>
-                  <option value="America/Chicago">America/Chicago (CST)</option>
-                  <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
-                  <option value="America/Bogota">America/Bogota (COT)</option>
-                  <option value="America/Mexico_City">America/Mexico_City (CST)</option>
-                </select>
-              </div>
-              <div class="form-field">
-                <label class="form-label">Moneda</label>
-                <select class="form-select" formControlName="currency">
-                  <option value="USD">USD — Dólar americano</option>
-                  <option value="COP">COP — Peso colombiano</option>
-                  <option value="MXN">MXN — Peso mexicano</option>
-                  <option value="EUR">EUR — Euro</option>
-                </select>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:flex-end">
-              <app-button variant="primary" type="submit" [loading]="isSaving()">Guardar cambios</app-button>
-            </div>
-          </form>
         </app-card>
       }
 
       <!-- Users tab -->
       @if (activeTab() === 'users') {
-        <app-card>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4)">
-            <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold)">Usuarios del sistema</p>
-            <app-button variant="primary" size="sm">+ Invitar usuario</app-button>
+        <app-card padding="none">
+
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:var(--space-5); border-bottom:1px solid var(--color-border)">
+            <div>
+              <p style="font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); margin:0">Usuarios del sistema</p>
+              <p style="font-size:var(--font-size-xs); color:var(--color-text-muted); margin:2px 0 0">{{ usersVm.users().length }} usuarios registrados</p>
+            </div>
+            <app-button variant="primary" size="sm" (click)="usersVm.openCreate()">+ Nuevo usuario</app-button>
           </div>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (user of users; track user.email) {
+
+          @if (usersVm.showForm()) {
+            <div class="user-form-panel" style="margin:var(--space-5); margin-bottom:0">
+              <p class="user-form-panel__title">{{ usersVm.editingId() ? 'Editar usuario' : 'Nuevo usuario' }}</p>
+              <form [formGroup]="usersVm.form" (ngSubmit)="usersVm.save()">
+                <div class="user-form-grid">
+                  <app-input label="Nombre completo" formControlName="name" />
+                  <app-input label="Email" type="email" formControlName="email" />
+                  <div class="form-field">
+                    <label class="form-label">Rol</label>
+                    <select class="form-select" formControlName="role">
+                      @for (role of usersVm.roles; track role) {
+                        <option [value]="role">{{ roleLabel(role) }}</option>
+                      }
+                    </select>
+                  </div>
+                  <app-input
+                    [label]="usersVm.editingId() ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña'"
+                    type="password"
+                    formControlName="password" />
+                </div>
+                <div class="user-form-actions">
+                  <app-button type="button" variant="ghost" size="sm" (click)="usersVm.closeForm()">Cancelar</app-button>
+                  <app-button type="submit" variant="primary" size="sm" [loading]="usersVm.isSaving()">
+                    {{ usersVm.isSaving() ? 'Guardando...' : 'Guardar' }}
+                  </app-button>
+                </div>
+              </form>
+            </div>
+          }
+
+          @if (usersVm.isLoading()) {
+            <div class="state-placeholder">Cargando usuarios...</div>
+          } @else if (usersVm.errorMessage()) {
+            <div class="alert alert--error" style="margin:var(--space-5)">{{ usersVm.errorMessage() }}</div>
+          } @else {
+            <table class="table">
+              <thead>
                 <tr>
-                  <td>
-                    <div style="display:flex; align-items:center; gap:var(--space-2)">
-                      <app-avatar [name]="user.name" size="sm" />
-                      {{ user.name }}
-                    </div>
-                  </td>
-                  <td>{{ user.email }}</td>
-                  <td><app-badge [variant]="roleVariant(user.role)">{{ user.role }}</app-badge></td>
-                  <td>
-                    <app-badge [variant]="user.active ? 'success' : 'default'">
-                      {{ user.active ? 'Activo' : 'Inactivo' }}
-                    </app-badge>
-                  </td>
-                  <td>
-                    <div class="row-actions">
-                      <app-button variant="ghost" size="sm">Editar</app-button>
-                    </div>
-                  </td>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Creado</th>
+                  <th></th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (user of usersVm.users(); track user.id) {
+                  <tr>
+                    <td>
+                      <div style="display:flex; align-items:center; gap:var(--space-2)">
+                        <app-avatar [name]="user.name" size="sm" />
+                        <strong>{{ user.name }}</strong>
+                      </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td><app-badge [variant]="roleVariant(user.role)">{{ roleLabel(user.role) }}</app-badge></td>
+                    <td style="color:var(--color-text-muted); font-size:var(--font-size-xs)">
+                      {{ user.createdAt | date:'dd/MM/yyyy' }}
+                    </td>
+                    <td>
+                      <div class="row-actions">
+                        <app-button variant="ghost" size="sm" (click)="usersVm.openEdit(user)">Editar</app-button>
+                        <app-button variant="danger" size="sm" (click)="usersVm.remove(user)">Eliminar</app-button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+                @empty {
+                  <tr><td colspan="5"><div class="state-placeholder">No hay usuarios registrados.</div></td></tr>
+                }
+              </tbody>
+            </table>
+          }
         </app-card>
       }
 

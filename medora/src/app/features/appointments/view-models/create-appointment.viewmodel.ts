@@ -3,6 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { ToastService } from '../../../core/toast/toast.service';
 import { AppointmentsService } from '../services/appointments.service';
 import { ProfessionalsService } from '../../professionals/services/professionals.service';
 import { AppointmentTypesService } from '../../appointment-types/services/appointment-types.service';
@@ -14,12 +15,13 @@ import { AppointmentStatus } from '../models/appointment.model';
 
 @Injectable()
 export class CreateAppointmentViewModel {
-  private readonly appointmentsSvc    = inject(AppointmentsService);
-  private readonly professionalsSvc   = inject(ProfessionalsService);
+  private readonly appointmentsSvc     = inject(AppointmentsService);
+  private readonly professionalsSvc    = inject(ProfessionalsService);
   private readonly appointmentTypesSvc = inject(AppointmentTypesService);
-  private readonly patientsSvc        = inject(PatientsService);
-  private readonly fb                 = inject(FormBuilder);
-  private readonly router             = inject(Router);
+  private readonly patientsSvc         = inject(PatientsService);
+  private readonly fb                  = inject(FormBuilder);
+  private readonly router              = inject(Router);
+  private readonly toast               = inject(ToastService);
 
   readonly professionals    = signal<Professional[]>([]);
   readonly appointmentTypes = signal<AppointmentType[]>([]);
@@ -83,10 +85,13 @@ export class CreateAppointmentViewModel {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
+          this.toast.success('Cita agendada correctamente.');
           this.router.navigate(['/appointments']);
         },
         error: err => {
-          this.errorMessage.set(err?.error?.message ?? 'Error al crear la cita.');
+          const msg = err?.error?.message ?? 'Error al crear la cita.';
+          this.errorMessage.set(msg);
+          this.toast.error(msg);
           this.isSubmitting.set(false);
         },
       });
