@@ -13,6 +13,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
   return next(
-    req.clone({ setHeaders: { Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjMDVkODUzMi0zMWNjLTQ1MjctOWU5Yy03ZDI2MmEwZDZjYTkiLCJ0ZW5hbnRJZCI6ImRlZDUzZWQxLWQ4YTMtNDZlNy1hZDRkLTgyOTQ1NmU3N2RhZiIsImlhdCI6MTc3MzE5Nzg0NywiZXhwIjoxNzczMjg0MjQ3fQ.QF3zItB6F25t0qaC1nwbvFHjAKEyHhSGqJtoPof0EaM` } }),
+    req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }),
   );
 };

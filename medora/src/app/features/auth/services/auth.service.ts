@@ -24,9 +24,11 @@ export class AuthService {
    * @returns Observable<void> that completes after the session is established.
    */
   login(credentials: LoginCredentials): Observable<void> {
+    localStorage.clear();
     return this.authApi.login(credentials).pipe(
       tap((dto: LoginResponseDto) => {
         const tokens = AuthMapper.toTokens(dto);
+        console.log("TOKEN GENERATED:", tokens.accessToken);
         this.tokenSvc.saveTokens(tokens.accessToken);
         this.authState.setUser(AuthMapper.toSessionUser(dto));
       }),

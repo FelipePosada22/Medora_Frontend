@@ -27,6 +27,8 @@ export interface Appointment {
   endTime: string;    // ISO datetime
   status: AppointmentStatus;
   notes: string | null;
+  durationMinutes: number;
+  createdAt: string;
 }
 
 export interface AppointmentPayload {

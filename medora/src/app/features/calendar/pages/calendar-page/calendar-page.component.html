@@ -3,7 +3,7 @@
   <div class="page__header">
     <div>
       <h1 class="page__title">Agenda Médica</h1>
-      <p class="page__subtitle">Vista semanal de citas y disponibilidad</p>
+      <p class="page__subtitle">Vista de citas y disponibilidad</p>
     </div>
     <app-button variant="primary" size="sm" [routerLink]="['/appointments/new']">+ Agendar cita</app-button>
   </div>
@@ -12,16 +12,47 @@
     <!-- Toolbar -->
     <div class="calendar-toolbar" style="margin-bottom: var(--space-4)">
       <div class="week-nav">
-        <button class="nav-btn" (click)="vm.prevWeek()">‹</button>
-        <span class="week-label">{{ vm.weekLabel() }}</span>
-        <button class="nav-btn" (click)="vm.nextWeek()">›</button>
+        <button class="nav-btn" (click)="vm.prevPeriod()">‹</button>
+        <span class="period-label">{{ vm.periodLabel() }}</span>
+        <button class="nav-btn" (click)="vm.nextPeriod()">›</button>
         <app-button variant="secondary" size="sm" (click)="vm.goToday()">Hoy</app-button>
       </div>
       <div class="view-toggle">
-        <button class="view-btn" [class.view-btn--active]="activeView() === 'day'"   (click)="setView('day')">Día</button>
-        <button class="view-btn" [class.view-btn--active]="activeView() === 'week'"  (click)="setView('week')">Semana</button>
-        <button class="view-btn" [class.view-btn--active]="activeView() === 'month'" (click)="setView('month')">Mes</button>
+        <button class="view-btn" [class.view-btn--active]="vm.activeView() === 'day'"   (click)="vm.setView('day')">Día</button>
+        <button class="view-btn" [class.view-btn--active]="vm.activeView() === 'week'"  (click)="vm.setView('week')">Semana</button>
+        <button class="view-btn" [class.view-btn--active]="vm.activeView() === 'month'" (click)="vm.setView('month')">Mes</button>
       </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar" style="margin-bottom: var(--space-4)">
+      <div class="filter-field">
+        <label class="filter-label">Profesional</label>
+        <select class="filter-select"
+          [value]="vm.filterProfessionalId()"
+          (change)="onProfessionalFilter($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (p of vm.professionals(); track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label">Tipo de servicio</label>
+        <select class="filter-select"
+          [value]="vm.filterAppointmentTypeId()"
+          (change)="vm.filterAppointmentTypeId.set($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (t of vm.appointmentTypes(); track t.id) {
+            <option [value]="t.id">{{ t.name }}</option>
+          }
+        </select>
+      </div>
+
+      @if (vm.filterProfessionalId() || vm.filterAppointmentTypeId()) {
+        <button class="filter-clear" (click)="clearFilters()">✕ Limpiar filtros</button>
+      }
     </div>
 
     @if (vm.errorMessage()) {
@@ -31,31 +62,93 @@
     @if (vm.isLoading()) {
       <div class="state-placeholder">Cargando agenda...</div>
     } @else {
-      <!-- Calendar grid -->
-      <div class="calendar-grid">
-        <!-- Corner -->
-        <div class="cal-corner"></div>
-        <!-- Day headers -->
-        @for (day of vm.weekDays(); track day.index) {
-          <div class="cal-day-header" [class.cal-day-header--today]="day.isToday">
-            {{ day.label }}
+
+      @switch (vm.activeView()) {
+
+        <!-- ── Day / Week grid ───────────────────────────────────────────── -->
+        @case ('day') {
+          <div class="calendar-grid calendar-grid--day">
+            <div class="cal-corner"></div>
+            @for (day of vm.viewDays(); track day.index) {
+              <div class="cal-day-header" [class.cal-day-header--today]="day.isToday">
+                {{ day.label }}
+              </div>
+            }
+            @for (slot of vm.timeSlots; track slot.hour) {
+              <div class="cal-time">{{ slot.time }}</div>
+              @for (day of vm.viewDays(); track day.index) {
+                <div class="cal-cell">
+                  @for (appt of vm.getSlotAppointments(day.index, slot.hour); track appt.id) {
+                    <div [class]="vm.chipClass(appt.status) + ' appt-chip--full'"
+                         [title]="vm.chipTitle(appt)"
+                         (click)="vm.selectAppointment(appt)">
+                      {{ appt.patientName }} · {{ appt.appointmentTypeName }}
+                    </div>
+                  }
+                </div>
+              }
+            }
           </div>
         }
 
-        <!-- Time rows -->
-        @for (slot of vm.timeSlots; track slot.hour) {
-          <div class="cal-time">{{ slot.time }}</div>
-          @for (day of vm.weekDays(); track day.index) {
-            <div class="cal-cell">
-              @for (appt of vm.getSlotAppointments(day.index, slot.hour); track appt.id) {
-                <div [class]="vm.chipClass(appt.status)" [title]="vm.chipTitle(appt)">
-                  {{ appt.patientName }}
+        @case ('week') {
+          <div class="calendar-grid">
+            <div class="cal-corner"></div>
+            @for (day of vm.viewDays(); track day.index) {
+              <div class="cal-day-header" [class.cal-day-header--today]="day.isToday">
+                {{ day.label }}
+              </div>
+            }
+            @for (slot of vm.timeSlots; track slot.hour) {
+              <div class="cal-time">{{ slot.time }}</div>
+              @for (day of vm.viewDays(); track day.index) {
+                <div class="cal-cell">
+                  @for (appt of vm.getSlotAppointments(day.index, slot.hour); track appt.id) {
+                    <div [class]="vm.chipClass(appt.status) + ' appt-chip--full'"
+                         [title]="vm.chipTitle(appt)"
+                         (click)="vm.selectAppointment(appt)">
+                      {{ appt.patientName }} · {{ appt.appointmentTypeName }}
+                    </div>
+                  }
                 </div>
               }
-            </div>
-          }
+            }
+          </div>
         }
-      </div>
+
+        <!-- ── Month grid ────────────────────────────────────────────────── -->
+        @case ('month') {
+          <div class="month-grid">
+            @for (h of MONTH_HEADERS; track h) {
+              <div class="month-day-header">{{ h }}</div>
+            }
+            @for (day of vm.monthDays(); track day.date.getTime()) {
+              @let dayAppts = vm.getDayAppointments(day.date);
+              <div class="month-cell"
+                   [class.month-cell--other-month]="!day.isCurrentMonth"
+                   [class.month-cell--today]="day.isToday">
+                <div class="month-cell__date" [class.month-cell__date--today]="day.isToday">
+                  {{ day.label }}
+                </div>
+                @for (appt of dayAppts; track appt.id; let i = $index) {
+                  @if (i < 3) {
+                    <div [class]="vm.chipClass(appt.status)"
+                         [title]="vm.chipTitle(appt)"
+                         (click)="vm.selectAppointment(appt)"
+                         style="margin-bottom: 1px;">
+                      {{ appt.patientName }}
+                    </div>
+                  }
+                }
+                @if (dayAppts.length > 3) {
+                  <div class="month-overflow">+{{ dayAppts.length - 3 }} más</div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      }
     }
 
     <!-- Legend -->
@@ -69,3 +162,81 @@
   </app-card>
 
 </div>
+
+<!-- Detail panel -->
+@if (vm.selectedAppointment(); as appt) {
+  <div class="detail-backdrop" (click)="vm.closeDetail()"></div>
+
+  <aside class="detail-panel">
+    <div class="detail-header">
+      <span class="detail-header__title">Detalle de cita</span>
+      <button class="detail-close" (click)="vm.closeDetail()">✕</button>
+    </div>
+
+    <div class="detail-body">
+
+      <div class="detail-row">
+        <span class="detail-label">Estado</span>
+        <app-badge [variant]="statusBadge(appt.status)">{{ statusLabel(appt.status) }}</app-badge>
+      </div>
+
+      <hr class="detail-divider" />
+
+      <div class="detail-row">
+        <span class="detail-label">Paciente</span>
+        <span class="detail-value">{{ appt.patientName }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Profesional</span>
+        <span class="detail-value">{{ appt.professionalName }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Tipo de cita</span>
+        <span class="detail-value">{{ appt.appointmentTypeName }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Duración</span>
+        <span class="detail-value">{{ appt.durationMinutes }} minutos</span>
+      </div>
+
+      <hr class="detail-divider" />
+
+      <div class="detail-row">
+        <span class="detail-label">Fecha</span>
+        <span class="detail-value">{{ appt.startTime | date:'EEEE d \'de\' MMMM yyyy':'':'es' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Horario</span>
+        <span class="detail-value">
+          {{ appt.startTime | date:'HH:mm' }} – {{ appt.endTime | date:'HH:mm' }}
+        </span>
+      </div>
+
+      @if (appt.notes) {
+        <hr class="detail-divider" />
+        <div class="detail-row">
+          <span class="detail-label">Notas</span>
+          <span class="detail-value">{{ appt.notes }}</span>
+        </div>
+      }
+
+      <hr class="detail-divider" />
+      <div class="detail-row">
+        <span class="detail-label">Registrado el</span>
+        <span class="detail-value">{{ appt.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+
+    </div>
+
+    <div class="detail-actions">
+      @if (appt.status === AppointmentStatus.SCHEDULED) {
+        <app-button variant="primary" size="sm" (click)="vm.changeStatus(AppointmentStatus.CONFIRMED)">Confirmar</app-button>
+        <app-button variant="ghost"   size="sm" (click)="vm.changeStatus(AppointmentStatus.CANCELLED)">Cancelar</app-button>
+      }
+      @if (appt.status === AppointmentStatus.CONFIRMED) {
+        <app-button variant="primary" size="sm" (click)="vm.changeStatus(AppointmentStatus.COMPLETED)">Atender</app-button>
+        <app-button variant="ghost"   size="sm" (click)="vm.changeStatus(AppointmentStatus.CANCELLED)">Cancelar</app-button>
+      }
+    </div>
+  </aside>
+}

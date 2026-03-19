@@ -13,8 +13,10 @@ export class AppointmentMapper {
       appointmentTypeName: dto.appointmentType.name,
       startTime:           dto.startTime,
       endTime:             dto.endTime,
-      status:              dto.status as AppointmentStatus,
-      notes:               dto.notes,
+      status:          dto.status as AppointmentStatus,
+      notes:           dto.notes,
+      durationMinutes: dto.appointmentType.durationMinutes,
+      createdAt:       dto.createdAt,
     };
   }
 
