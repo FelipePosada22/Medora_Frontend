@@ -18,9 +18,20 @@
           <div class="patient-hero__sub">{{ patient.email }} · {{ patient.phone }}</div>
           <div class="patient-hero__sub">Registrado el {{ patient.createdAt | date:'dd/MM/yyyy' }}</div>
         </div>
-        <a class="btn-primary-link" [routerLink]="['/billing']" [queryParams]="{ patientId: patient.id }">
-          + Nueva factura
-        </a>
+        <div class="hero-actions">
+          <a class="hero-action-btn hero-action-btn--primary"
+             [routerLink]="['/billing']" [queryParams]="{ patientId: patient.id }">
+            + Nueva factura
+          </a>
+          <a class="hero-action-btn"
+             [routerLink]="['/treatment-plans']" [queryParams]="{ patientId: patient.id }">
+            + Nuevo plan de trat.
+          </a>
+          <a class="hero-action-btn"
+             [routerLink]="['/prescriptions']" [queryParams]="{ patientId: patient.id }">
+            + Nueva receta
+          </a>
+        </div>
       </div>
     </app-card>
 
@@ -72,6 +83,14 @@
         <button class="tab-btn" [class.tab-btn--active]="vm.activeTab() === 'invoices'"
           (click)="vm.activeTab.set('invoices')">
           Facturas ({{ vm.invoices().length }})
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="vm.activeTab() === 'treatment-plans'"
+          (click)="vm.activeTab.set('treatment-plans')">
+          Planes ({{ vm.plans().length }})
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="vm.activeTab() === 'prescriptions'"
+          (click)="vm.activeTab.set('prescriptions')">
+          Recetas ({{ vm.prescriptions().length }})
         </button>
       </div>
 
@@ -268,6 +287,93 @@
                   }
                 </tbody>
               </table>
+            }
+          }
+
+
+          <!-- ── PLANES DE TRATAMIENTO ───────────────────────────────────────── -->
+          @case ('treatment-plans') {
+            @if (vm.plans().length === 0) {
+              <div class="state-placeholder">Este paciente no tiene planes de tratamiento.</div>
+            } @else {
+              <div class="plan-list">
+                @for (plan of vm.plans(); track plan.id) {
+                  <div class="plan-card">
+                    <div class="plan-card__header">
+                      <div>
+                        <div class="plan-card__title">{{ plan.title }}</div>
+                        <div class="plan-card__meta">{{ plan.createdAt | date:'dd/MM/yyyy' }} · {{ plan.items.length }} ítems</div>
+                      </div>
+                      <div style="display:flex;gap:var(--space-2);align-items:center">
+                        <app-badge [variant]="planBadge(plan.status)">{{ vm.planStatusLabel(plan.status) }}</app-badge>
+                        <a class="plan-link" [routerLink]="['/treatment-plans']" [queryParams]="{ planId: plan.id }">Ver detalle →</a>
+                      </div>
+                    </div>
+                    @if (plan.items.length > 0) {
+                      <div class="plan-card__body">
+                        @for (item of plan.items.slice(0, 4); track item.id) {
+                          <div class="plan-item-row">
+                            <span>{{ item.description }}</span>
+                            <span>{{ item.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                          </div>
+                        }
+                        @if (plan.items.length > 4) {
+                          <div class="plan-item-row" style="color:var(--color-text-muted);font-style:italic">
+                            <span>+{{ plan.items.length - 4 }} más…</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                    <div class="plan-card__footer">
+                      <span style="color:var(--color-text-muted)">Total</span>
+                      <strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
+
+          <!-- ── RECETAS ─────────────────────────────────────────────────────── -->
+          @case ('prescriptions') {
+            @if (vm.prescriptions().length === 0) {
+              <div class="state-placeholder">Este paciente no tiene recetas registradas.</div>
+            } @else {
+              <div class="rx-list">
+                @for (rx of vm.prescriptions(); track rx.id) {
+                  <div class="rx-card">
+                    <div class="rx-card__header">
+                      <div>
+                        <div class="rx-card__diagnosis">{{ rx.diagnosis }}</div>
+                        <div class="rx-card__meta">
+                          {{ rx.createdAt | date:'dd/MM/yyyy' }}
+                          · Dr. {{ rx.professionalName }}
+                          · {{ rx.items.length }} medicamento{{ rx.items.length !== 1 ? 's' : '' }}
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:var(--space-2);align-items:center">
+                        <app-badge [variant]="rxBadge(rx.status)">{{ vm.rxStatusLabel(rx.status) }}</app-badge>
+                        <a class="plan-link" [routerLink]="['/prescriptions']" [queryParams]="{ rxId: rx.id }">Ver detalle →</a>
+                      </div>
+                    </div>
+                    @if (rx.items.length > 0) {
+                      <div class="rx-card__body">
+                        @for (item of rx.items.slice(0, 3); track item.id) {
+                          <div class="rx-item-row">
+                            <div class="rx-item-row__med">{{ item.medication }}</div>
+                            <div class="rx-item-row__detail">{{ item.dosage }} · {{ item.frequency }} · {{ item.duration }}</div>
+                          </div>
+                        }
+                        @if (rx.items.length > 3) {
+                          <div class="rx-item-row" style="color:var(--color-text-muted);font-style:italic;font-size:var(--font-size-xs)">
+                            +{{ rx.items.length - 3 }} más…
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             }
           }
 

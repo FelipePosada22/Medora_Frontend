@@ -33,6 +33,16 @@ export const routes: Routes = [
 
       // All roles
       {
+        path: 'treatment-plans',
+        loadChildren: () =>
+          import('./features/treatment-plans/treatment-plans.routes').then(m => m.treatmentPlansRoutes),
+      },
+      {
+        path: 'prescriptions',
+        loadChildren: () =>
+          import('./features/prescriptions/prescriptions.routes').then(m => m.prescriptionsRoutes),
+      },
+      {
         path: 'calendar',
         loadChildren: () =>
           import('./features/calendar/calendar.routes').then(m => m.calendarRoutes),

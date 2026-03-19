@@ -206,6 +206,101 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
     .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 
     .status-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+    .payment-block {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: var(--space-2);
+    }
+    .payment-block__row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-neutral-50);
+    }
+    .payment-block__info {
+      display: flex; align-items: center; gap: var(--space-3);
+      font-size: var(--font-size-sm);
+    }
+    .payment-block__date { color: var(--color-text-secondary); }
+    .payment-block__method { font-weight: var(--font-weight-medium); }
+    .payment-block__ref { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+    .payment-block__right {
+      display: flex; align-items: center; gap: var(--space-3);
+      font-size: var(--font-size-sm);
+    }
+
+    .refund-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--space-1) var(--space-3);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      border-top: 1px dashed var(--color-border);
+      background: var(--color-surface);
+    }
+    .refund-row__amount { color: var(--color-error-600); font-weight: var(--font-weight-medium); }
+
+    .refund-form {
+      padding: var(--space-3);
+      border-top: 1px solid var(--color-border);
+      background: var(--color-error-50);
+    }
+
+    /* Draft editing */
+    .items-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+    .item-actions-cell {
+      white-space: nowrap; text-align: right;
+    }
+    .item-inline-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-text-muted); font-size: var(--font-size-sm);
+      padding: 2px 4px; line-height: 1;
+      &:hover { color: var(--color-primary-600); }
+      &:disabled { opacity: 0.3; cursor: default; }
+    }
+    .item-inline-btn--danger { &:hover { color: var(--color-error-600); } }
+
+    .inline-edit-form {
+      padding: var(--space-3);
+      background: var(--color-primary-50);
+      border-top: 1px solid var(--color-border);
+      display: flex; flex-direction: column; gap: var(--space-2);
+    }
+    .inline-edit-row { display: flex; gap: var(--space-2); align-items: flex-end; }
+    .inline-edit-actions {
+      display: flex; gap: var(--space-2); justify-content: flex-end;
+      margin-top: var(--space-1);
+    }
+
+    .add-item-form {
+      margin-top: var(--space-3);
+      border: 1px dashed var(--color-primary-300);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      background: var(--color-primary-50);
+      display: flex; flex-direction: column; gap: var(--space-2);
+    }
+    .add-item-form__title {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-primary-700);
+    }
+
+    .draft-edit-section {
+      border: 1px solid var(--color-primary-200);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      background: var(--color-primary-50);
+      display: flex; flex-direction: column; gap: var(--space-3);
+    }
+    .draft-edit-section__title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-primary-700);
+    }
   `],
 })
 export class BillingPageComponent {
@@ -238,5 +333,11 @@ export class BillingPageComponent {
 
   protected statusLabel(status: InvoiceStatus): string {
     return INVOICE_STATUS_LABELS[status] ?? status;
+  }
+
+  protected confirmRemoveItem(itemId: string): void {
+    if (confirm('¿Eliminar este ítem de la factura?')) {
+      this.vm.removeInvoiceItem(itemId);
+    }
   }
 }

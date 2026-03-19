@@ -1,0 +1,420 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Planes de Tratamiento</h1>
+      <p class="page__subtitle">Gestión de tratamientos por paciente</p>
+    </div>
+    <app-button variant="primary" size="sm" (click)="vm.openCreatePanel()">+ Nuevo plan</app-button>
+  </div>
+
+  @if (vm.errorMessage()) {
+    <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+  }
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__label">Total planes</div>
+        <div class="stat-card__value">{{ vm.stats().total }}</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__label">Activos</div>
+        <div class="stat-card__value stat-card__value--blue">{{ vm.stats().active }}</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__label">Parciales</div>
+        <div class="stat-card__value stat-card__value--amber">{{ vm.stats().partial }}</div>
+      </div>
+    </app-card>
+    <app-card padding="none">
+      <div class="stat-card">
+        <div class="stat-card__label">Completados</div>
+        <div class="stat-card__value stat-card__value--green">{{ vm.stats().completed }}</div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Table -->
+  <app-card>
+    <div class="page__toolbar" style="margin-bottom: var(--space-2)">
+      <input class="search-input" type="search" placeholder="Buscar paciente o título..."
+        [value]="vm.searchTerm()"
+        (input)="vm.searchTerm.set($any($event.target).value)" />
+    </div>
+
+    <div class="status-tabs">
+      @for (tab of vm.statusTabs; track tab.value) {
+        <button class="status-tab"
+          [class.status-tab--active]="vm.activeFilter() === tab.value"
+          (click)="vm.activeFilter.set(tab.value)">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando planes...</div>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Título</th>
+            <th>Ítems</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (plan of vm.filteredPlans(); track plan.id) {
+            <tr>
+              <td><strong>{{ plan.patientName }}</strong></td>
+              <td>{{ plan.title }}</td>
+              <td>
+                <div class="items-summary">
+                  @for (item of plan.items; track item.id) {
+                    <span class="item-dot item-dot--{{ item.status.toLowerCase() }}"
+                      [title]="item.description + ' — ' + vm.itemStatusLabel(item.status)"></span>
+                  }
+                </div>
+              </td>
+              <td><strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              <td><app-badge [variant]="planBadge(plan.status)">{{ vm.planStatusLabel(plan.status) }}</app-badge></td>
+              <td>
+                <app-button variant="ghost" size="sm" (click)="vm.selectPlan(plan)">Ver</app-button>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="6">
+                <div class="state-placeholder">Sin planes para este filtro</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </app-card>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     CREATE PANEL
+     ══════════════════════════════════════════════════════════════════════════ -->
+@if (vm.showCreatePanel()) {
+  <div class="panel-backdrop" (click)="vm.closeCreatePanel()"></div>
+
+  <aside class="panel" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title">Nuevo plan de tratamiento</span>
+      <button class="panel-close" (click)="vm.closeCreatePanel()">✕</button>
+    </div>
+
+    <form class="panel-body" [formGroup]="vm.createForm" (ngSubmit)="vm.submitCreate()">
+
+      <div class="form-group">
+        <app-search-select
+          label="Paciente"
+          placeholder="Buscar paciente..."
+          [required]="true"
+          [items]="vm.patientsList()"
+          [hasError]="!!(vm.createForm.get('patientId')?.invalid && vm.createForm.get('patientId')?.touched)"
+          formControlName="patientId" />
+        @if (vm.createForm.get('patientId')?.invalid && vm.createForm.get('patientId')?.touched) {
+          <span class="form-error">Selecciona un paciente</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label form-label--required">Título del plan</label>
+        <input class="form-input" type="text" formControlName="title"
+          placeholder="Ej: Plan estético completo" />
+        @if (vm.createForm.get('title')?.invalid && vm.createForm.get('title')?.touched) {
+          <span class="form-error">El título es obligatorio</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" formControlName="notes"
+          placeholder="Observaciones opcionales..."></textarea>
+      </div>
+
+      <!-- Items -->
+      <div>
+        <div class="items-header">
+          <span class="items-section-label">Tratamientos</span>
+          <app-button type="button" variant="ghost" size="sm" (click)="vm.addItem()">+ Agregar</app-button>
+        </div>
+
+        @for (ctrl of vm.itemControls; track $index) {
+          <div class="item-block" [formGroup]="$any(ctrl)">
+            <div class="item-block__row">
+              <div class="form-group" style="flex:1">
+                <label class="form-label form-label--required">Descripción</label>
+                <input class="form-input" type="text" formControlName="description"
+                  placeholder="Ej: Blanqueamiento dental" />
+              </div>
+              <div class="form-group" style="width:120px">
+                <label class="form-label form-label--required">Precio</label>
+                <input class="form-input" type="number" formControlName="price" min="0" step="0.01" />
+              </div>
+              <button type="button" class="item-remove"
+                [disabled]="vm.itemControls.length === 1"
+                (click)="vm.removeItem($index)">✕</button>
+            </div>
+            <div class="form-group">
+              <input class="form-input" type="text" formControlName="notes"
+                placeholder="Notas del tratamiento (opcional)" />
+            </div>
+          </div>
+        }
+
+        <div class="items-total">
+          Total estimado: {{ vm.getCreateTotal() | currency:'USD':'symbol':'1.2-2' }}
+        </div>
+      </div>
+
+    </form>
+
+    <div class="panel-footer">
+      <app-button variant="ghost" size="sm" (click)="vm.closeCreatePanel()">Cancelar</app-button>
+      <app-button variant="primary" size="sm" [disabled]="vm.isSaving()" (click)="vm.submitCreate()">
+        {{ vm.isSaving() ? 'Guardando...' : 'Crear plan' }}
+      </app-button>
+    </div>
+  </aside>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DETAIL PANEL
+     ══════════════════════════════════════════════════════════════════════════ -->
+@if (vm.selectedPlan(); as plan) {
+  <div class="panel-backdrop" (click)="vm.closeDetail()"></div>
+
+  <aside class="panel" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">{{ plan.title }}</div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px;">
+          {{ plan.patientName }} · {{ plan.createdAt | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap: var(--space-2)">
+        <app-button variant="danger" size="sm"
+          [disabled]="vm.isDeletingPlan()"
+          (click)="confirmDeletePlan(plan.title)">
+          {{ vm.isDeletingPlan() ? '...' : 'Eliminar plan' }}
+        </app-button>
+        <button class="panel-close" (click)="vm.closeDetail()">✕</button>
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span class="detail-label">Estado del plan</span>
+          <app-badge [variant]="planBadge(plan.status)">{{ vm.planStatusLabel(plan.status) }}</app-badge>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Total</span>
+          <span class="detail-value"><strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong></span>
+        </div>
+      </div>
+
+      @if (plan.notes) {
+        <div class="detail-row">
+          <span class="detail-label">Notas</span>
+          <span class="detail-value">{{ plan.notes }}</span>
+        </div>
+      }
+
+      <hr class="detail-divider" />
+
+      <!-- Items -->
+      <div>
+        <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">
+          Tratamientos ({{ plan.items.length }})
+        </div>
+        <div class="treatment-items">
+          @for (item of plan.items; track item.id) {
+            <div class="treatment-item">
+
+              @if (vm.editingItemId() === item.id) {
+                <!-- ── Inline edit form ── -->
+                <div class="treatment-item__edit" [formGroup]="vm.editItemForm">
+                  <div class="form-group">
+                    <label class="form-label form-label--required">Descripción</label>
+                    <input class="form-input" type="text" formControlName="description" />
+                  </div>
+                  <div class="item-edit-row">
+                    <div class="form-group" style="flex:1">
+                      <label class="form-label form-label--required">Precio</label>
+                      <input class="form-input" type="number" formControlName="price" min="0" step="0.01" />
+                    </div>
+                    <div class="form-group" style="flex:2">
+                      <label class="form-label">Notas</label>
+                      <input class="form-input" type="text" formControlName="notes" placeholder="Opcional" />
+                    </div>
+                  </div>
+                  <div class="treatment-item__actions">
+                    <app-button variant="ghost" size="sm" (click)="vm.closeEditItem()">Cancelar</app-button>
+                    <app-button variant="primary" size="sm"
+                      [disabled]="vm.isUpdatingItem() === item.id"
+                      (click)="vm.submitEditItem()">
+                      {{ vm.isUpdatingItem() === item.id ? 'Guardando...' : 'Guardar' }}
+                    </app-button>
+                  </div>
+                </div>
+              } @else {
+                <!-- ── Read mode ── -->
+                <div class="treatment-item__header">
+                  <div>
+                    <div class="treatment-item__desc">{{ item.description }}</div>
+                    @if (item.notes) {
+                      <div class="treatment-item__notes">{{ item.notes }}</div>
+                    }
+                  </div>
+                  <div class="treatment-item__right">
+                    <span>{{ item.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                    <app-badge [variant]="itemBadge(item.status)">{{ vm.itemStatusLabel(item.status) }}</app-badge>
+                  </div>
+                </div>
+
+                <div class="treatment-item__actions">
+                  <!-- Status transitions -->
+                  @for (action of vm.itemNextStates[item.status]; track action.status) {
+                    <app-button
+                      [variant]="action.status === 'CANCELLED' ? 'ghost' : 'secondary'"
+                      size="sm"
+                      [disabled]="vm.isUpdatingItem() === item.id"
+                      (click)="vm.updateItemStatus(item.id, action.status)">
+                      {{ vm.isUpdatingItem() === item.id ? '...' : action.label }}
+                    </app-button>
+                  }
+                  <!-- Edit & delete — only for non-finalized items -->
+                  @if (item.status !== 'COMPLETED' && item.status !== 'CANCELLED') {
+                    <app-button variant="ghost" size="sm" (click)="vm.openEditItem(item)">Editar</app-button>
+                  }
+                  <app-button variant="danger" size="sm"
+                    [disabled]="vm.isUpdatingItem() === item.id"
+                    (click)="confirmDeleteItem(item.description, item.id)">
+                    {{ vm.isUpdatingItem() === item.id ? '...' : 'Eliminar' }}
+                  </app-button>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Invoices linked to this plan -->
+      @if (plan.invoices.length > 0) {
+        <hr class="detail-divider" />
+        <div class="plan-invoices">
+          <div class="plan-invoices__header">
+            <span class="detail-label">Facturas del plan</span>
+            <span class="plan-invoices__summary">
+              Pagado: <strong>{{ plan.totalPaid | currency:'USD':'symbol':'1.2-2' }}</strong>
+              / Total: <strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong>
+            </span>
+          </div>
+          @for (inv of plan.invoices; track inv.id) {
+            <div class="plan-invoice-row">
+              <div class="plan-invoice-row__left">
+                <span class="plan-invoice-row__id">#{{ inv.id.slice(-6).toUpperCase() }}</span>
+                <span class="plan-invoice-row__date">
+                  {{ (inv.issuedAt ?? inv.createdAt) | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+              <div class="plan-invoice-row__right">
+                <span class="plan-invoice-row__total">{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</span>
+                <app-badge [variant]="invoiceBadge(inv.status)">{{ invoiceLabel(inv.status) }}</app-badge>
+                @if (inv.balance > 0) {
+                  <span class="plan-invoice-row__balance">Saldo: {{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+                }
+                <a class="plan-invoice-link" [routerLink]="['/billing']" [queryParams]="{ invoiceId: inv.id }">
+                  Ver →
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Generate invoice section -->
+      @if (plan.status === 'ACTIVE' || plan.status === 'PARTIAL') {
+        <hr class="detail-divider" />
+        @if (vm.showInvoiceForm()) {
+          <div class="invoice-gen-form" [formGroup]="vm.invoiceForm">
+            <div class="invoice-gen-form__title">Nueva factura desde este plan</div>
+
+            <!-- Item checklist -->
+            @if (vm.billableItems().length === 0) {
+              <div class="invoice-gen-empty">
+                Todos los procedimientos activos ya han sido facturados.
+              </div>
+            } @else {
+              <div class="invoice-item-list">
+                <div class="invoice-item-list__header">
+                  <span class="detail-label">Procedimientos a incluir</span>
+                  <span class="invoice-item-list__count">
+                    {{ vm.invoiceItemIds().size }} / {{ vm.billableItems().length }} seleccionados
+                  </span>
+                </div>
+                @for (item of vm.billableItems(); track item.id) {
+                  <label class="invoice-item-check"
+                    [class.invoice-item-check--selected]="vm.isInvoiceItemSelected(item.id)">
+                    <input type="checkbox"
+                      [checked]="vm.isInvoiceItemSelected(item.id)"
+                      (change)="vm.toggleInvoiceItem(item.id)" />
+                    <span class="invoice-item-check__desc">{{ item.description }}</span>
+                    <span class="invoice-item-check__price">{{ item.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                  </label>
+                }
+                <div class="invoice-item-list__total">
+                  <span>Total seleccionado</span>
+                  <strong>{{ invoiceSelectedTotal() | currency:'USD':'symbol':'1.2-2' }}</strong>
+                </div>
+              </div>
+            }
+
+            <div class="form-row">
+              <app-input label="Fecha de vencimiento (opcional)" type="date" formControlName="dueDate" />
+            </div>
+            <div class="form-row">
+              <app-input label="Notas (opcional)" formControlName="notes" />
+            </div>
+            <div class="invoice-gen-form__actions">
+              <app-button variant="ghost" size="sm" (click)="vm.closeInvoiceForm()">Cancelar</app-button>
+              <app-button variant="primary" size="sm"
+                [disabled]="vm.isGeneratingInvoice() || vm.invoiceItemIds().size === 0"
+                (click)="vm.generateInvoice()">
+                {{ vm.isGeneratingInvoice() ? 'Generando...' : 'Generar factura' }}
+              </app-button>
+            </div>
+          </div>
+        } @else {
+          @if (vm.billableItems().length > 0) {
+            <app-button variant="secondary" size="sm" (click)="vm.openInvoiceForm()">
+              Generar factura desde este plan
+            </app-button>
+          } @else {
+            <div class="invoice-gen-empty">Todos los procedimientos han sido facturados.</div>
+          }
+        }
+      }
+
+    </div>
+  </aside>
+}

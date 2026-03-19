@@ -1,0 +1,369 @@
+<div class="page">
+
+  <div class="page__header">
+    <div>
+      <h1 class="page__title">Recetario</h1>
+      <p class="page__subtitle">Prescripciones médicas con firma digital</p>
+    </div>
+    <app-button variant="primary" size="sm" (click)="vm.openCreatePanel()">+ Nueva receta</app-button>
+  </div>
+
+  @if (vm.errorMessage()) {
+    <div class="alert alert--error">{{ vm.errorMessage() }}</div>
+  }
+
+  <app-card>
+    <div class="page__toolbar" style="margin-bottom: var(--space-2)">
+      <input class="search-input" type="search" placeholder="Buscar paciente o diagnóstico..."
+        [value]="vm.searchTerm()"
+        (input)="vm.searchTerm.set($any($event.target).value)" />
+    </div>
+
+    <div class="status-tabs">
+      @for (tab of vm.statusTabs; track tab.value) {
+        <button class="status-tab"
+          [class.status-tab--active]="vm.activeFilter() === tab.value"
+          (click)="vm.activeFilter.set(tab.value)">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    @if (vm.isLoading()) {
+      <div class="state-placeholder">Cargando recetas...</div>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Diagnóstico</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rx of vm.filteredPrescriptions(); track rx.id) {
+            <tr>
+              <td><strong>{{ rx.patientName }}</strong></td>
+              <td>{{ rx.professionalName }}</td>
+              <td>{{ rx.diagnosis }}</td>
+              <td><app-badge [variant]="rxBadge(rx.status)">{{ vm.statusLabel(rx.status) }}</app-badge></td>
+              <td>{{ rx.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <app-button variant="ghost" size="sm" (click)="vm.selectPrescription(rx)">Ver</app-button>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="6">
+                <div class="state-placeholder">Sin recetas para este filtro</div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </app-card>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     CREATE PANEL
+     ══════════════════════════════════════════════════════════════════════════ -->
+@if (vm.showCreatePanel()) {
+  <div class="panel-backdrop" (click)="vm.closeCreatePanel()"></div>
+
+  <aside class="panel" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <span class="panel-title">Nueva receta</span>
+      <button class="panel-close" (click)="vm.closeCreatePanel()">✕</button>
+    </div>
+
+    <form class="panel-body" [formGroup]="vm.createForm" (ngSubmit)="vm.submitCreate()">
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <app-search-select
+            label="Paciente"
+            placeholder="Buscar paciente..."
+            [required]="true"
+            [items]="vm.patientsList()"
+            formControlName="patientId" />
+          @if (vm.createForm.get('patientId')?.invalid && vm.createForm.get('patientId')?.touched) {
+            <span class="form-error">Obligatorio</span>
+          }
+        </div>
+        <div class="form-group">
+          <app-search-select
+            label="Médico"
+            placeholder="Seleccionar médico..."
+            [required]="true"
+            [items]="vm.professionalsList()"
+            formControlName="professionalId" />
+          @if (vm.createForm.get('professionalId')?.invalid && vm.createForm.get('professionalId')?.touched) {
+            <span class="form-error">Obligatorio</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label form-label--required">Diagnóstico</label>
+        <input class="form-input" type="text" formControlName="diagnosis"
+          placeholder="Ej: Infección bacteriana leve" />
+        @if (vm.createForm.get('diagnosis')?.invalid && vm.createForm.get('diagnosis')?.touched) {
+          <span class="form-error">El diagnóstico es obligatorio</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" formControlName="notes"
+          placeholder="Indicaciones generales..."></textarea>
+      </div>
+
+      <!-- Medications -->
+      <div>
+        <div class="items-header">
+          <span class="items-section-label">Medicamentos</span>
+          <app-button type="button" variant="ghost" size="sm" (click)="vm.addItem()">+ Agregar</app-button>
+        </div>
+
+        @for (ctrl of vm.itemControls; track $index) {
+          <div class="med-block" [formGroup]="$any(ctrl)">
+            <div class="med-block__header">
+              <span class="med-block__num">Medicamento {{ $index + 1 }}</span>
+              <button type="button" class="item-remove"
+                [disabled]="vm.itemControls.length === 1"
+                (click)="vm.removeItem($index)">✕</button>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label form-label--required">Medicamento</label>
+                <input class="form-input" type="text" formControlName="medication"
+                  placeholder="Ej: Amoxicilina 500mg" />
+              </div>
+              <div class="form-group">
+                <label class="form-label form-label--required">Dosis</label>
+                <input class="form-input" type="text" formControlName="dosage"
+                  placeholder="Ej: 1 cápsula" />
+              </div>
+              <div class="form-group">
+                <label class="form-label form-label--required">Frecuencia</label>
+                <input class="form-input" type="text" formControlName="frequency"
+                  placeholder="Ej: Cada 8 horas" />
+              </div>
+              <div class="form-group">
+                <label class="form-label form-label--required">Duración</label>
+                <input class="form-input" type="text" formControlName="duration"
+                  placeholder="Ej: 7 días" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Indicaciones</label>
+              <input class="form-input" type="text" formControlName="instructions"
+                placeholder="Ej: Tomar con alimentos" />
+            </div>
+          </div>
+        }
+      </div>
+
+    </form>
+
+    <div class="panel-footer">
+      <app-button variant="ghost" size="sm" (click)="vm.closeCreatePanel()">Cancelar</app-button>
+      <app-button variant="primary" size="sm" [disabled]="vm.isSaving()" (click)="vm.submitCreate()">
+        {{ vm.isSaving() ? 'Guardando...' : 'Crear receta' }}
+      </app-button>
+    </div>
+  </aside>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DETAIL PANEL
+     ══════════════════════════════════════════════════════════════════════════ -->
+@if (vm.selectedPrescription(); as rx) {
+  <div class="panel-backdrop" (click)="vm.closeDetail()"></div>
+
+  <aside class="panel panel--wide" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Receta médica</div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px;">
+          {{ rx.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap: var(--space-2); flex-wrap:wrap">
+        <app-badge [variant]="rxBadge(rx.status)">{{ vm.statusLabel(rx.status) }}</app-badge>
+        <button class="pdf-btn pdf-btn--secondary" title="Descargar PDF"
+          (click)="downloadPdf(rx)">
+          ⬇ PDF
+        </button>
+        <button class="pdf-btn pdf-btn--whatsapp" title="Enviar por WhatsApp"
+          [disabled]="isSendingPdf()"
+          (click)="sendWhatsApp(rx)">
+          {{ isSendingPdf() ? 'Preparando...' : '📲 WhatsApp' }}
+        </button>
+        <button class="panel-close" (click)="vm.closeDetail()">✕</button>
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- Info -->
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span class="detail-label">Paciente</span>
+          <span class="detail-value">{{ rx.patientName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Médico</span>
+          <span class="detail-value">{{ rx.professionalName }}</span>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Diagnóstico</span>
+        <span class="detail-value">{{ rx.diagnosis }}</span>
+      </div>
+
+      @if (rx.notes) {
+        <div class="detail-row">
+          <span class="detail-label">Notas</span>
+          <span class="detail-value">{{ rx.notes }}</span>
+        </div>
+      }
+
+      <hr class="detail-divider" />
+
+      <!-- Medications -->
+      <div>
+        <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-3);">
+          Medicamentos ({{ rx.items.length }})
+        </div>
+        <div class="med-list">
+          @for (item of rx.items; track item.id) {
+            <div class="med-card">
+              <div class="med-card__name">{{ item.medication }}</div>
+              <div class="med-card__details">
+                <span><strong>Dosis:</strong> {{ item.dosage }}</span>
+                <span><strong>Frecuencia:</strong> {{ item.frequency }}</span>
+                <span><strong>Duración:</strong> {{ item.duration }}</span>
+              </div>
+              @if (item.instructions) {
+                <div class="med-card__note">📋 {{ item.instructions }}</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <hr class="detail-divider" />
+
+      <!-- Signing flow -->
+      @switch (vm.signingStep()) {
+
+        <!-- Doctor sign step -->
+        @case ('doctor') {
+          <div class="sign-section">
+            <div class="sign-section__title">Firma del médico</div>
+            <app-signature-pad
+              label="Dibuje su firma"
+              hint="Use el mouse o dedo para firmar"
+              (confirmed)="vm.onDoctorSignatureCaptured($event)" />
+            <div class="sign-section__actions">
+              <app-button variant="ghost" size="sm" (click)="vm.cancelSigning()">Cancelar</app-button>
+              <app-button variant="primary" size="sm"
+                [disabled]="!vm.canSubmitDoctorSign() || vm.isSigning()"
+                (click)="vm.submitDoctorSign()">
+                {{ vm.isSigning() ? 'Guardando...' : 'Guardar firma' }}
+              </app-button>
+            </div>
+          </div>
+        }
+
+        <!-- Patient sign step -->
+        @case ('patient') {
+          <div class="sign-section">
+            <div class="sign-section__title">Firma y huella del paciente</div>
+            <app-signature-pad
+              label="Firma del paciente"
+              hint="El paciente debe firmar aquí"
+              (confirmed)="vm.onPatientSignatureCaptured($event)" />
+            <app-signature-pad
+              label="Huella dactilar"
+              hint="Trace la huella del paciente"
+              (confirmed)="vm.onFingerprintCaptured($event)" />
+            <div class="sign-section__actions">
+              <app-button variant="ghost" size="sm" (click)="vm.cancelSigning()">Cancelar</app-button>
+              <app-button variant="primary" size="sm"
+                [disabled]="!vm.canSubmitPatientSign() || vm.isSigning()"
+                (click)="vm.submitPatientSign()">
+                {{ vm.isSigning() ? 'Guardando...' : 'Guardar firmas' }}
+              </app-button>
+            </div>
+          </div>
+        }
+
+        <!-- Default: show actions or signatures -->
+        @default {
+
+          <!-- Action buttons -->
+          <div class="flow-actions">
+            @if (rx.status === 'DRAFT') {
+              <app-button variant="primary" size="sm" (click)="vm.openDoctorSign()">
+                ✍️ Firmar como médico
+              </app-button>
+            }
+            @if (rx.status === 'DOCTOR_SIGNED') {
+              <app-button variant="primary" size="sm" (click)="vm.openPatientSign()">
+                🖐 Obtener firma del paciente
+              </app-button>
+            }
+            @if (rx.status === 'PATIENT_SIGNED') {
+              <app-button variant="primary" size="sm"
+                [disabled]="vm.isSigning()"
+                (click)="vm.submitFinalize()">
+                {{ vm.isSigning() ? 'Finalizando...' : '✅ Finalizar receta' }}
+              </app-button>
+            }
+          </div>
+
+          <!-- Signature images (once signed) -->
+          @if (rx.doctorSignature || rx.patientSignature || rx.fingerprint) {
+            <div class="signatures-grid">
+              @if (rx.doctorSignature) {
+                <div class="sig-box">
+                  <div class="sig-box__label">Firma del médico</div>
+                  <img [src]="rx.doctorSignature" class="sig-box__img" alt="Firma médico" />
+                </div>
+              }
+              @if (rx.patientSignature) {
+                <div class="sig-box">
+                  <div class="sig-box__label">Firma del paciente</div>
+                  <img [src]="rx.patientSignature" class="sig-box__img" alt="Firma paciente" />
+                </div>
+              }
+              @if (rx.fingerprint) {
+                <div class="sig-box">
+                  <div class="sig-box__label">Huella dactilar</div>
+                  <img [src]="rx.fingerprint" class="sig-box__img sig-box__img--fingerprint" alt="Huella" />
+                </div>
+              }
+            </div>
+          }
+
+          @if (rx.finalizedAt) {
+            <div class="finalized-stamp">
+              ✅ Receta finalizada el {{ rx.finalizedAt | date:'dd/MM/yyyy HH:mm' }}
+            </div>
+          }
+
+        }
+      }
+
+    </div>
+  </aside>
+}

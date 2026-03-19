@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PatientDetailViewModel } from '../../view-models/patient-detail.viewmodel';
 import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
@@ -11,7 +12,7 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
   templateUrl: './patient-detail-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [PatientDetailViewModel],
-  imports: [RouterLink, CurrencyPipe, DatePipe, CardComponent, BadgeComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, CardComponent, BadgeComponent, ButtonComponent],
   styles: [`
     .back-link {
       display: inline-flex; align-items: center; gap: var(--space-1);
@@ -157,6 +158,82 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
     .inv-detail-table td { padding: var(--space-1) var(--space-2); color: var(--color-text-primary); }
     .inv-detail-table tr:not(:last-child) td { border-bottom: 1px solid var(--color-border); }
     .inv-notes { font-size: var(--font-size-xs); color: var(--color-text-secondary); font-style: italic; margin-top: var(--space-2); }
+
+    /* Hero action buttons */
+    .hero-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .hero-action-btn {
+      display: inline-flex; align-items: center; gap: var(--space-1);
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+      border-radius: var(--radius-md); text-decoration: none; white-space: nowrap;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-primary); background: var(--color-surface);
+      transition: all var(--transition-fast);
+      &:hover { background: var(--color-neutral-100); border-color: var(--color-text-secondary); }
+    }
+    .hero-action-btn--primary {
+      background: var(--color-primary-600); color: white; border-color: var(--color-primary-600);
+      &:hover { background: var(--color-primary-700); border-color: var(--color-primary-700); }
+    }
+
+    /* Treatment plans tab */
+    .plan-list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .plan-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .plan-card__header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-neutral-50);
+    }
+    .plan-card__title { font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+    .plan-card__meta { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px; }
+    .plan-card__body { padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+    .plan-item-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: var(--font-size-sm); color: var(--color-text-secondary);
+      padding: var(--space-1) 0;
+      border-bottom: 1px solid var(--color-border);
+      &:last-child { border-bottom: none; }
+    }
+    .plan-card__footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-neutral-50);
+      border-top: 1px solid var(--color-border);
+      font-size: var(--font-size-sm);
+    }
+    .plan-link {
+      font-size: var(--font-size-xs); color: var(--color-primary-600);
+      text-decoration: none; font-weight: var(--font-weight-medium);
+      &:hover { text-decoration: underline; }
+    }
+
+    /* Prescriptions tab */
+    .rx-list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .rx-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .rx-card__header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-neutral-50);
+    }
+    .rx-card__diagnosis { font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+    .rx-card__meta { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px; }
+    .rx-card__body { padding: var(--space-3) var(--space-4); }
+    .rx-item-row {
+      display: flex; flex-direction: column; gap: 2px;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--color-border);
+      &:last-child { border-bottom: none; }
+    }
+    .rx-item-row__med { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); }
+    .rx-item-row__detail { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+    .state-placeholder { font-size: var(--font-size-sm); color: var(--color-text-muted); text-align: center; padding: var(--space-8) 0; font-style: italic; }
   `],
 })
 export class PatientDetailPageComponent {
@@ -217,5 +294,19 @@ export class PatientDetailPageComponent {
       CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', OTHER: 'Otro',
     };
     return map[method] ?? method;
+  }
+
+  protected planBadge(status: string): BadgeVariant {
+    const map: Record<string, BadgeVariant> = {
+      ACTIVE: 'info', COMPLETED: 'success', CANCELLED: 'error', PARTIAL: 'warning',
+    };
+    return map[status] ?? 'default';
+  }
+
+  protected rxBadge(status: string): BadgeVariant {
+    const map: Record<string, BadgeVariant> = {
+      DRAFT: 'default', DOCTOR_SIGNED: 'info', PATIENT_SIGNED: 'warning', FINALIZED: 'success',
+    };
+    return map[status] ?? 'default';
   }
 }

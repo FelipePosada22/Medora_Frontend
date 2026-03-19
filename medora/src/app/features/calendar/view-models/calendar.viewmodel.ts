@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { Router } from '@angular/router';
 import { switchMap, tap, catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { AppointmentsService } from '../../appointments/services/appointments.service';
@@ -42,6 +43,7 @@ export class CalendarViewModel {
   private readonly professionalsService    = inject(ProfessionalsService);
   private readonly appointmentTypesService = inject(AppointmentTypesService);
   private readonly toast                   = inject(ToastService);
+  private readonly router                  = inject(Router);
 
   readonly activeView    = signal<CalendarView>('week');
   readonly referenceDate = signal<Date>(this.startOfDay(new Date()));
@@ -250,6 +252,26 @@ export class CalendarViewModel {
         this.appointments.update(list => list.map(a => a.id === appt.id ? updated : a));
         this.selectedAppointment.set(updated);
         this.toast.success('Estado de cita actualizado.');
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al actualizar estado.';
+        this.errorMessage.set(msg);
+        this.toast.error(msg);
+      },
+    });
+  }
+
+  /** Mark as COMPLETED and navigate to the patient detail page. */
+  attendAppointment(): void {
+    const appt = this.selectedAppointment();
+    if (!appt) return;
+    this.appointmentsService.update(appt.id, { status: AppointmentStatus.COMPLETED }).subscribe({
+      next: () => {
+        const updated = { ...appt, status: AppointmentStatus.COMPLETED };
+        this.appointments.update(list => list.map(a => a.id === appt.id ? updated : a));
+        this.selectedAppointment.set(null);
+        this.toast.success('Cita completada.');
+        this.router.navigate(['/patients', appt.patientId]);
       },
       error: err => {
         const msg = err?.error?.message ?? 'Error al actualizar estado.';

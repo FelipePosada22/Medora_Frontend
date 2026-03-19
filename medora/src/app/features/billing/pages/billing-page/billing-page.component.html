@@ -242,18 +242,52 @@
         }
       </div>
 
-      @if (inv.notes) {
+      @if (inv.notes && !vm.isEditingHeader()) {
         <div class="detail-row">
           <span class="detail-label">Notas</span>
           <span class="detail-value">{{ inv.notes }}</span>
         </div>
       }
 
+      <!-- Edit header form (DRAFT only) -->
+      @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
+        @if (vm.isEditingHeader()) {
+          <div class="draft-edit-section" [formGroup]="vm.editHeaderForm">
+            <div class="draft-edit-section__title">Editar encabezado</div>
+            <div class="form-group">
+              <label class="form-label">Fecha de vencimiento</label>
+              <input class="form-input" type="date" formControlName="dueDate" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notas</label>
+              <textarea class="form-textarea" formControlName="notes" placeholder="Observaciones opcionales..."></textarea>
+            </div>
+            <div class="inline-edit-actions">
+              <app-button type="button" variant="ghost" size="sm" (click)="vm.closeEditHeader()">Cancelar</app-button>
+              <app-button type="button" variant="primary" size="sm"
+                [disabled]="vm.isSavingEdit()"
+                (click)="vm.submitEditHeader()">
+                {{ vm.isSavingEdit() ? 'Guardando...' : 'Guardar cambios' }}
+              </app-button>
+            </div>
+          </div>
+        } @else {
+          <div style="text-align: right">
+            <app-button type="button" variant="ghost" size="sm" (click)="vm.openEditHeader()">✎ Editar encabezado</app-button>
+          </div>
+        }
+      }
+
       <hr class="detail-divider" />
 
       <!-- Items table -->
       <div>
-        <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Ítems</div>
+        <div class="items-section-header">
+          <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">Ítems</span>
+          @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
+            <app-button type="button" variant="ghost" size="sm" (click)="vm.openAddItem()">+ Agregar ítem</app-button>
+          }
+        </div>
         <table class="mini-table">
           <thead>
             <tr>
@@ -261,58 +295,179 @@
               <th class="text-right">Cant.</th>
               <th class="text-right">P. Unit.</th>
               <th class="text-right">Total</th>
+              @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
+                <th></th>
+              }
             </tr>
           </thead>
           <tbody>
-            @for (item of inv.items; track item.description) {
+            @for (item of inv.items; track item.id) {
               <tr>
                 <td>{{ item.description }}</td>
                 <td class="text-right">{{ item.quantity }}</td>
                 <td class="text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
                 <td class="text-right">{{ item.total | currency:'USD':'symbol':'1.2-2' }}</td>
+                @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
+                  <td class="item-actions-cell">
+                    <button class="item-inline-btn" title="Editar" (click)="vm.openEditItem(item)">✎</button>
+                    <button class="item-inline-btn item-inline-btn--danger" title="Eliminar"
+                      [disabled]="vm.isSavingEdit() || inv.items.length === 1"
+                      (click)="confirmRemoveItem(item.id)">✕</button>
+                  </td>
+                }
               </tr>
+              @if (vm.editingItemId() === item.id) {
+                <tr>
+                  <td [attr.colspan]="5" style="padding: 0">
+                    <div class="inline-edit-form" [formGroup]="vm.editItemForm">
+                      <div class="inline-edit-row">
+                        <div class="form-group" style="flex: 2">
+                          <label class="form-label form-label--required">Descripción</label>
+                          <input class="form-input" type="text" formControlName="description" />
+                        </div>
+                        <div class="form-group" style="flex: 0 0 64px">
+                          <label class="form-label">Cant.</label>
+                          <input class="form-input" type="number" formControlName="quantity" min="1" />
+                        </div>
+                        <div class="form-group" style="flex: 0 0 88px">
+                          <label class="form-label">P. Unit.</label>
+                          <input class="form-input" type="number" formControlName="unitPrice" min="0" step="0.01" />
+                        </div>
+                      </div>
+                      <div class="inline-edit-actions">
+                        <app-button type="button" variant="ghost" size="sm" (click)="vm.closeEditItem()">Cancelar</app-button>
+                        <app-button type="button" variant="primary" size="sm"
+                          [disabled]="vm.isSavingEdit()"
+                          (click)="vm.submitEditItem()">
+                          {{ vm.isSavingEdit() ? 'Guardando...' : 'Guardar' }}
+                        </app-button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
           <tfoot>
             <tr>
               <td colspan="3" class="text-right">Total</td>
               <td class="text-right">{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</td>
+              @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
+                <td></td>
+              }
             </tr>
           </tfoot>
         </table>
+
+        <!-- Add item form (DRAFT only) -->
+        @if (inv.status === InvoiceStatus.DRAFT && !isDoctor() && vm.isAddingItem()) {
+          <div class="add-item-form" [formGroup]="vm.addItemForm">
+            <div class="add-item-form__title">Nuevo ítem</div>
+            <div class="inline-edit-row">
+              <div class="form-group" style="flex: 2">
+                <label class="form-label form-label--required">Descripción</label>
+                <input class="form-input" type="text" formControlName="description" />
+              </div>
+              <div class="form-group" style="flex: 0 0 64px">
+                <label class="form-label">Cant.</label>
+                <input class="form-input" type="number" formControlName="quantity" min="1" />
+              </div>
+              <div class="form-group" style="flex: 0 0 88px">
+                <label class="form-label">P. Unit.</label>
+                <input class="form-input" type="number" formControlName="unitPrice" min="0" step="0.01" />
+              </div>
+            </div>
+            <div class="inline-edit-actions">
+              <app-button type="button" variant="ghost" size="sm" (click)="vm.closeAddItem()">Cancelar</app-button>
+              <app-button type="button" variant="primary" size="sm"
+                [disabled]="vm.isSavingEdit()"
+                (click)="vm.submitAddItem()">
+                {{ vm.isSavingEdit() ? 'Agregando...' : 'Agregar ítem' }}
+              </app-button>
+            </div>
+          </div>
+        }
       </div>
 
       <!-- Payments -->
       @if (inv.payments.length > 0) {
         <div>
           <div style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-2);">Pagos registrados</div>
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Método</th>
-                <th>Referencia</th>
-                <th class="text-right">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (p of inv.payments; track p.id) {
-                <tr>
-                  <td>{{ p.paidAt | date:'dd/MM/yyyy' }}</td>
-                  <td>{{ vm.statusLabel(p.method) }}</td>
-                  <td>{{ p.reference ?? '—' }}</td>
-                  <td class="text-right">{{ p.amount | currency:'USD':'symbol':'1.2-2' }}</td>
-                </tr>
+          @for (p of inv.payments; track p.id) {
+            @let refunds = vm.paymentRefunds(p.id);
+            @let refundable = vm.maxRefundable(p);
+            <div class="payment-block">
+              <div class="payment-block__row">
+                <div class="payment-block__info">
+                  <span class="payment-block__date">{{ p.paidAt | date:'dd/MM/yyyy' }}</span>
+                  <span class="payment-block__method">{{ vm.statusLabel(p.method) }}</span>
+                  @if (p.reference) { <span class="payment-block__ref">{{ p.reference }}</span> }
+                </div>
+                <div class="payment-block__right">
+                  <strong>{{ p.amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+                  @if (refundable > 0 && inv.status !== InvoiceStatus.CANCELLED && !isDoctor()) {
+                    <app-button variant="ghost" size="sm"
+                      (click)="vm.refundPaymentId() === p.id ? vm.closeRefundForm() : vm.openRefundForm(p)">
+                      {{ vm.refundPaymentId() === p.id ? 'Cancelar' : '↩ Devolver' }}
+                    </app-button>
+                  }
+                </div>
+              </div>
+
+              <!-- Existing refunds for this payment -->
+              @if (refunds.length > 0) {
+                @for (r of refunds; track r.id) {
+                  <div class="refund-row">
+                    <span>↩ Devolución · {{ r.reason }}</span>
+                    <span class="refund-row__amount">−{{ r.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+                  </div>
+                }
               }
-            </tbody>
-          </table>
+
+              <!-- Inline refund form -->
+              @if (vm.refundPaymentId() === p.id) {
+                <div class="refund-form" [formGroup]="vm.refundForm">
+                  <div class="payment-grid">
+                    <div class="form-group">
+                      <label class="form-label form-label--required">Monto a devolver</label>
+                      <input class="form-input" type="number" formControlName="amount"
+                        min="0.01" [max]="vm.maxRefundableAmount" step="0.01" />
+                      <span class="form-label" style="color:var(--color-text-muted)">
+                        Máximo: {{ refundable | currency:'USD':'symbol':'1.2-2' }}
+                      </span>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label form-label--required">Método</label>
+                      <select class="form-select" formControlName="method">
+                        @for (m of vm.paymentMethods; track m.value) {
+                          <option [value]="m.value">{{ m.label }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-top: var(--space-2)">
+                    <label class="form-label form-label--required">Motivo</label>
+                    <input class="form-input" type="text" formControlName="reason"
+                      placeholder="Ej: Paciente canceló el tratamiento" />
+                  </div>
+                  <div style="text-align:right; margin-top: var(--space-2)">
+                    <app-button type="button" variant="danger" size="sm"
+                      [disabled]="vm.isAddingRefund()"
+                      (click)="vm.submitRefund()">
+                      {{ vm.isAddingRefund() ? 'Registrando...' : 'Confirmar devolución' }}
+                    </app-button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
         </div>
       }
 
       <!-- Balance -->
       <div class="balance-box">
         <span>Saldo pendiente</span>
-        <span class="balance-amount">{{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span class="balance-amount">{{ vm.netBalance() | currency:'USD':'symbol':'1.2-2' }}</span>
       </div>
 
       <!-- Status actions — hidden for doctors (read-only on issued/paid) -->

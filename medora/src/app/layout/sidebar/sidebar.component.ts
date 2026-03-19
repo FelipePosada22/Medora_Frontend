@@ -25,15 +25,17 @@ export class SidebarComponent {
   protected readonly isCollapsed = signal(false);
 
   private readonly allNavItems: NavItem[] = [
-    { label: 'Dashboard',      route: '/dashboard',         icon: '⊞',  roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
-    { label: 'Agenda',         route: '/calendar',          icon: '📅', roles: ALL_ROLES },
-    { label: 'Citas',          route: '/appointments',      icon: '📋', roles: ALL_ROLES },
-    { label: 'Pacientes',      route: '/patients',          icon: '👤', roles: ALL_ROLES },
-    { label: 'Facturación',    route: '/billing',           icon: '💰', roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
-    { label: 'Profesionales',  route: '/professionals',     icon: '🩺', roles: ['ADMIN'] },
-    { label: 'Tipos de cita',  route: '/appointment-types', icon: '🏷',  roles: ['ADMIN'] },
-    { label: 'Horarios',       route: '/schedules',         icon: '🕐', roles: ['ADMIN'] },
-    { label: 'Configuración',  route: '/settings',          icon: '⚙️', roles: ['ADMIN'] },
+    { label: 'Dashboard',         route: '/dashboard',          icon: '⊞',  roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+    { label: 'Agenda',            route: '/calendar',           icon: '📅', roles: ALL_ROLES },
+    { label: 'Citas',             route: '/appointments',       icon: '📋', roles: ALL_ROLES },
+    { label: 'Pacientes',         route: '/patients',           icon: '👤', roles: ALL_ROLES },
+    { label: 'Planes de trat.',   route: '/treatment-plans',    icon: '🦷', roles: ALL_ROLES },
+    { label: 'Recetario',         route: '/prescriptions',      icon: '📝', roles: ALL_ROLES },
+    { label: 'Facturación',       route: '/billing',            icon: '💰', roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+    { label: 'Profesionales',     route: '/professionals',      icon: '🩺', roles: ['ADMIN'] },
+    { label: 'Tipos de cita',     route: '/appointment-types',  icon: '🏷',  roles: ['ADMIN'] },
+    { label: 'Horarios',          route: '/schedules',          icon: '🕐', roles: ['ADMIN'] },
+    { label: 'Configuración',     route: '/settings',           icon: '⚙️', roles: ['ADMIN'] },
   ];
 
   protected readonly navItems = computed(() => {

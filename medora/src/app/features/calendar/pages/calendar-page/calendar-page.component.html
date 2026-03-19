@@ -234,15 +234,13 @@
         <app-button variant="ghost"   size="sm" (click)="vm.changeStatus(AppointmentStatus.CANCELLED)">Cancelar</app-button>
       }
       @if (appt.status === AppointmentStatus.CONFIRMED) {
-        <app-button variant="primary" size="sm" (click)="vm.changeStatus(AppointmentStatus.COMPLETED)">Atender</app-button>
+        <app-button variant="primary" size="sm" (click)="vm.attendAppointment()">Atender</app-button>
         <app-button variant="ghost"   size="sm" (click)="vm.changeStatus(AppointmentStatus.CANCELLED)">Cancelar</app-button>
       }
-      @if (appt.status === AppointmentStatus.COMPLETED && canBill()) {
-        <app-button variant="secondary" size="sm"
-          [routerLink]="['/billing']"
-          [queryParams]="draftQueryParams(appt)">
-          💰 Generar borrador
-        </app-button>
+      @if (appt.status === AppointmentStatus.COMPLETED) {
+        <a class="patient-link" [routerLink]="['/patients', appt.patientId]">
+          Ver ficha del paciente →
+        </a>
       }
     </div>
   </aside>

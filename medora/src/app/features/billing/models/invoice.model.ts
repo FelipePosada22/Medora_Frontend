@@ -29,10 +29,12 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 export interface InvoiceItem {
-  description: string;
-  quantity:    number;
-  unitPrice:   number;
-  total:       number;
+  id:                   string;
+  description:          string;
+  quantity:             number;
+  unitPrice:            number;
+  total:                number;
+  treatmentPlanItemId?: string | null;
 }
 
 export interface InvoicePayment {
@@ -44,18 +46,20 @@ export interface InvoicePayment {
 }
 
 export interface Invoice {
-  id:            string;
-  status:        InvoiceStatus;
-  patientId:     string;
-  patientName:   string;
-  appointmentId: string | null;
-  dueDate:       string | null;
-  notes:         string | null;
-  items:         InvoiceItem[];
-  payments:      InvoicePayment[];
-  total:         number;
-  paid:          number;
-  balance:       number;
-  createdAt:     string;
-  issuedAt:      string | null;
+  id:                 string;
+  status:             InvoiceStatus;
+  patientId:          string;
+  patientName:        string;
+  appointmentId:      string | null;
+  treatmentPlanId:    string | null;
+  treatmentPlanTitle: string | null;
+  dueDate:            string | null;
+  notes:              string | null;
+  items:              InvoiceItem[];
+  payments:           InvoicePayment[];
+  total:              number;
+  paid:               number;
+  balance:            number;
+  createdAt:          string;
+  issuedAt:           string | null;
 }
