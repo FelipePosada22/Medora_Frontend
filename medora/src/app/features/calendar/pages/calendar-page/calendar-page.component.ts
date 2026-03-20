@@ -260,6 +260,56 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
       &:hover { text-decoration: underline; }
     }
 
+    /* Reminders */
+    .reminder-section {
+      padding: var(--space-1) 0 var(--space-2);
+    }
+    .reminder-section__header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+    .reminder-section__title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+    .reminder-empty {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      text-align: center;
+      padding: var(--space-3) 0;
+      margin: 0;
+    }
+    .reminder-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .reminder-item {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+    .reminder-item__top {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: var(--space-1);
+    }
+    .reminder-item__type {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-success-700);
+      background: var(--color-success-50);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+    .reminder-item__date {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+    .reminder-item__msg {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      margin: 0;
+      line-height: 1.5;
+    }
+
     /* Filter bar */
     .filter-bar {
       display: flex;

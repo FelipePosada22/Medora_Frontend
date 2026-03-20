@@ -171,6 +171,12 @@ export class BillingViewModel {
     });
   }
 
+  reloadList(): void {
+    this.service.getAll().subscribe({
+      next: list => this.invoices.set(list),
+    });
+  }
+
   // ── Commands ───────────────────────────────────────────────────────────────
 
   openCreatePanel(opts?: { patientId?: string; appointmentId?: string; serviceDescription?: string; servicePrice?: number }): void {
@@ -249,9 +255,8 @@ export class BillingViewModel {
     const inv = this.selectedInvoice();
     if (!inv) return;
     this.service.updateStatus(inv.id, status).subscribe({
-      next: updated => {
-        this.selectedInvoice.set(updated);
-        this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
+      next: () => {
+        this._reloadDetail(inv.id);
         this.toast.success('Estado de factura actualizado.');
       },
       error: err => {
@@ -272,15 +277,10 @@ export class BillingViewModel {
       ...(v.reference ? { reference: v.reference } : {}),
     }).subscribe({
       next: () => {
-        this.service.getById(inv.id).subscribe({
-          next: updated => {
-            this.selectedInvoice.set(updated);
-            this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
-            this.paymentForm.reset({ amount: 0, method: PaymentMethod.CASH, reference: '' });
-            this.isAddingPayment.set(false);
-            this.toast.success('Pago registrado correctamente.');
-          },
-        });
+        this._reloadDetail(inv.id);
+        this.paymentForm.reset({ amount: 0, method: PaymentMethod.CASH, reference: '' });
+        this.isAddingPayment.set(false);
+        this.toast.success('Pago registrado correctamente.');
       },
       error: err => {
         const msg = err?.error?.message ?? 'Error al registrar pago.';
@@ -311,9 +311,8 @@ export class BillingViewModel {
       dueDate: v.dueDate || null,
       notes:   v.notes   || null,
     }).subscribe({
-      next: updated => {
-        this.selectedInvoice.set(updated);
-        this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
+      next: () => {
+        this._reloadDetail(inv.id);
         this.isEditingHeader.set(false);
         this.isSavingEdit.set(false);
         this.toast.success('Factura actualizada.');
@@ -339,9 +338,8 @@ export class BillingViewModel {
     this.isSavingEdit.set(true);
     const v = this.editItemForm.getRawValue();
     this.service.updateItem(inv.id, itemId, { description: v.description, quantity: v.quantity, unitPrice: v.unitPrice }).subscribe({
-      next: updated => {
-        this.selectedInvoice.set(updated);
-        this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
+      next: () => {
+        this._reloadDetail(inv.id);
         this.editingItemId.set(null);
         this.isSavingEdit.set(false);
         this.toast.success('Ítem actualizado.');
@@ -366,9 +364,8 @@ export class BillingViewModel {
     this.isSavingEdit.set(true);
     const v = this.addItemForm.getRawValue();
     this.service.addItem(inv.id, { description: v.description, quantity: v.quantity, unitPrice: v.unitPrice }).subscribe({
-      next: updated => {
-        this.selectedInvoice.set(updated);
-        this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
+      next: () => {
+        this._reloadDetail(inv.id);
         this.isAddingItem.set(false);
         this.isSavingEdit.set(false);
         this.toast.success('Ítem agregado.');
@@ -386,14 +383,9 @@ export class BillingViewModel {
     this.isSavingEdit.set(true);
     this.service.removeItem(inv.id, itemId).subscribe({
       next: () => {
-        this.service.getById(inv.id).subscribe({
-          next: updated => {
-            this.selectedInvoice.set(updated);
-            this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
-            this.isSavingEdit.set(false);
-            this.toast.success('Ítem eliminado.');
-          },
-        });
+        this._reloadDetail(inv.id);
+        this.isSavingEdit.set(false);
+        this.toast.success('Ítem eliminado.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Error al eliminar ítem.');
@@ -444,13 +436,7 @@ export class BillingViewModel {
           createdAt: dto.createdAt,
         };
         this.invoiceRefunds.update(list => [...list, refund]);
-        // Reload invoice — backend may have changed status (PAID → ISSUED)
-        this.service.getById(inv.id).subscribe({
-          next: updated => {
-            this.selectedInvoice.set(updated);
-            this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
-          },
-        });
+        this._reloadDetail(inv.id);
         this.refundPaymentId.set(null);
         this.isAddingRefund.set(false);
         this.toast.success('Devolución registrada correctamente.');
@@ -480,6 +466,15 @@ export class BillingViewModel {
     return (INVOICE_STATUS_LABELS as Record<string, string>)[value]
         ?? (PAYMENT_METHOD_LABELS as Record<string, string>)[value]
         ?? value;
+  }
+
+  private _reloadDetail(id: string): void {
+    this.service.getById(id).subscribe({
+      next: updated => {
+        this.selectedInvoice.set(updated);
+        this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
+      },
+    });
   }
 
   private _loadRefunds(invoiceId: string): void {

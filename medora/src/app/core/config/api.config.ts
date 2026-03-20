@@ -5,5 +5,5 @@ import { InjectionToken } from '@angular/core';
  * Override in `app.config.ts` via `{ provide: API_URL, useValue: env.apiUrl }`.
  */
 export const API_URL = new InjectionToken<string>('API_URL', {
-  factory: () => 'http://localhost:3000',
+  factory: () => 'https://joyful-trust-dev.up.railway.app',
 });

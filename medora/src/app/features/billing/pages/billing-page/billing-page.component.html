@@ -214,7 +214,13 @@
           Creada el {{ inv.createdAt | date:'dd/MM/yyyy HH:mm' }}
         </div>
       </div>
-      <button class="panel-close" (click)="vm.closeDetail()">✕</button>
+      <div class="panel-header-actions">
+        <button class="pdf-btn pdf-btn--secondary" title="Descargar PDF" (click)="downloadPdf(inv)">⬇ PDF</button>
+        <button class="pdf-btn pdf-btn--whatsapp" title="Enviar por WhatsApp" [disabled]="isSendingPdf()" (click)="sendWhatsApp(inv)">
+          {{ isSendingPdf() ? '...' : '📲 WhatsApp' }}
+        </button>
+        <button class="panel-close" (click)="vm.closeDetail()">✕</button>
+      </div>
     </div>
 
     <div class="panel-body">

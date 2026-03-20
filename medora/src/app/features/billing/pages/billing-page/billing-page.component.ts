@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -8,7 +8,9 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { SearchSelectComponent } from '../../../../shared/components/search-select/search-select.component';
 import { BillingViewModel } from '../../view-models/billing.viewmodel';
-import { InvoiceStatus, INVOICE_STATUS_LABELS } from '../../models/invoice.model';
+import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '../../models/invoice.model';
+import { InvoicePdfService } from '../../services/invoice-pdf.service';
+import { PatientsService } from '../../../patients/services/patients.service';
 import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
 @Component({
@@ -246,6 +248,26 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
       background: var(--color-error-50);
     }
 
+    /* PDF buttons */
+    .panel-header-actions {
+      display: flex; align-items: center; gap: var(--space-2);
+    }
+    .pdf-btn {
+      padding: 4px 10px; border-radius: var(--radius-md);
+      font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+      cursor: pointer; border: 1px solid transparent; line-height: 1.5;
+      &:disabled { opacity: 0.5; cursor: default; }
+    }
+    .pdf-btn--secondary {
+      background: var(--color-surface); border-color: var(--color-border);
+      color: var(--color-text-secondary);
+      &:hover:not(:disabled) { background: var(--color-border); }
+    }
+    .pdf-btn--whatsapp {
+      background: #25d366; color: #fff;
+      &:hover:not(:disabled) { background: #1da851; }
+    }
+
     /* Draft editing */
     .items-section-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -307,8 +329,14 @@ export class BillingPageComponent {
   protected readonly vm            = inject(BillingViewModel);
   protected readonly InvoiceStatus = InvoiceStatus;
 
-  private readonly authState = inject(AuthStateService);
-  protected readonly isDoctor = computed(() => this.authState.user()?.role === 'DOCTOR');
+  private readonly authState      = inject(AuthStateService);
+  private readonly pdfService     = inject(InvoicePdfService);
+  private readonly patientsService = inject(PatientsService);
+
+  protected readonly isDoctor    = computed(() => this.authState.user()?.role === 'DOCTOR');
+  protected readonly isSendingPdf = signal(false);
+
+  private _patientPhoneCache = new Map<string, string | null>();
 
   constructor() {
     const route              = inject(ActivatedRoute);
@@ -339,5 +367,30 @@ export class BillingPageComponent {
     if (confirm('¿Eliminar este ítem de la factura?')) {
       this.vm.removeInvoiceItem(itemId);
     }
+  }
+
+  protected downloadPdf(inv: Invoice): void {
+    this.pdfService.download(inv);
+  }
+
+  protected sendWhatsApp(inv: Invoice): void {
+    this._withPhone(inv.patientId, phone => {
+      this.isSendingPdf.set(true);
+      this.pdfService.shareWhatsApp(inv, phone).finally(() => this.isSendingPdf.set(false));
+    });
+  }
+
+  private _withPhone(patientId: string, cb: (phone: string | null) => void): void {
+    if (this._patientPhoneCache.has(patientId)) {
+      cb(this._patientPhoneCache.get(patientId) ?? null);
+      return;
+    }
+    this.patientsService.getById(patientId).subscribe({
+      next: p => {
+        this._patientPhoneCache.set(patientId, p.phone ?? null);
+        cb(p.phone ?? null);
+      },
+      error: () => cb(null),
+    });
   }
 }

@@ -8,6 +8,7 @@ import { AppointmentTypesService } from '../../appointment-types/services/appoin
 import { Appointment, AppointmentStatus } from '../../appointments/models/appointment.model';
 import { Professional } from '../../professionals/models/professional.model';
 import { AppointmentType } from '../../appointment-types/models/appointment-type.model';
+import { RemindersApi, ReminderDto } from '../../appointments/api/reminders.api';
 import { ToastService } from '../../../core/toast/toast.service';
 
 export type CalendarView = 'day' | 'week' | 'month';
@@ -42,6 +43,7 @@ export class CalendarViewModel {
   private readonly appointmentsService     = inject(AppointmentsService);
   private readonly professionalsService    = inject(ProfessionalsService);
   private readonly appointmentTypesService = inject(AppointmentTypesService);
+  private readonly remindersApi            = inject(RemindersApi);
   private readonly toast                   = inject(ToastService);
   private readonly router                  = inject(Router);
 
@@ -54,6 +56,10 @@ export class CalendarViewModel {
   readonly selectedAppointment = signal<Appointment | null>(null);
   readonly isLoading           = signal(false);
   readonly errorMessage        = signal<string | null>(null);
+
+  // ── Reminders ─────────────────────────────────────────────────────────────
+  readonly reminders         = signal<ReminderDto[]>([]);
+  readonly isSendingReminder = signal(false);
 
   // Filter signals
   readonly filterProfessionalId    = signal<string>('');
@@ -237,10 +243,37 @@ export class CalendarViewModel {
 
   selectAppointment(appt: Appointment): void {
     this.selectedAppointment.set(appt);
+    this.reminders.set([]);
+    this._loadReminders(appt.id);
   }
 
   closeDetail(): void {
     this.selectedAppointment.set(null);
+    this.reminders.set([]);
+  }
+
+  sendReminder(): void {
+    const appt = this.selectedAppointment();
+    if (!appt) return;
+    this.isSendingReminder.set(true);
+    this.remindersApi.send(appt.id).subscribe({
+      next: reminder => {
+        this.reminders.update(list => [reminder, ...list]);
+        this.isSendingReminder.set(false);
+        this.toast.success('Recordatorio SMS enviado correctamente.');
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'Error al enviar el recordatorio.';
+        this.toast.error(msg);
+        this.isSendingReminder.set(false);
+      },
+    });
+  }
+
+  private _loadReminders(appointmentId: string): void {
+    this.remindersApi.getByAppointment(appointmentId).subscribe({
+      next: list => this.reminders.set(list),
+    });
   }
 
   changeStatus(status: AppointmentStatus): void {

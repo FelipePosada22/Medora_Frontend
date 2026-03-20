@@ -21,8 +21,8 @@ export class InvoicesService {
     return this.api.create(body).pipe(map(InvoiceMapper.toDomain));
   }
 
-  updateStatus(id: string, status: InvoiceStatus): Observable<Invoice> {
-    return this.api.updateStatus(id, status).pipe(map(InvoiceMapper.toDomain));
+  updateStatus(id: string, status: InvoiceStatus): Observable<void> {
+    return this.api.updateStatus(id, status).pipe(map(() => void 0));
   }
 
   addPayment(id: string, body: AddPaymentBody): Observable<InvoicePaymentDto> {
@@ -37,16 +37,16 @@ export class InvoicesService {
     return this.api.getSummary(id);
   }
 
-  updateHeader(id: string, body: UpdateInvoiceHeaderBody): Observable<Invoice> {
-    return this.api.updateHeader(id, body).pipe(map(InvoiceMapper.toDomain));
+  updateHeader(id: string, body: UpdateInvoiceHeaderBody): Observable<void> {
+    return this.api.updateHeader(id, body).pipe(map(() => void 0));
   }
 
-  addItem(id: string, body: InvoiceItemBody): Observable<Invoice> {
-    return this.api.addItem(id, body).pipe(map(InvoiceMapper.toDomain));
+  addItem(id: string, body: InvoiceItemBody): Observable<void> {
+    return this.api.addItem(id, body).pipe(map(() => void 0));
   }
 
-  updateItem(id: string, itemId: string, body: UpdateInvoiceItemBody): Observable<Invoice> {
-    return this.api.updateItem(id, itemId, body).pipe(map(InvoiceMapper.toDomain));
+  updateItem(id: string, itemId: string, body: UpdateInvoiceItemBody): Observable<void> {
+    return this.api.updateItem(id, itemId, body).pipe(map(() => void 0));
   }
 
   removeItem(id: string, itemId: string): Observable<void> {

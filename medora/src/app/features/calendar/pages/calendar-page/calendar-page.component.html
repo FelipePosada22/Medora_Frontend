@@ -226,6 +226,37 @@
         <span class="detail-value">{{ appt.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
       </div>
 
+      <!-- Recordatorios SMS -->
+      <hr class="detail-divider" />
+      <div class="reminder-section">
+        <div class="reminder-section__header">
+          <span class="reminder-section__title">Recordatorios SMS</span>
+          @if (appt.status === AppointmentStatus.SCHEDULED || appt.status === AppointmentStatus.CONFIRMED) {
+            <app-button variant="secondary" size="sm"
+              [disabled]="vm.isSendingReminder()"
+              (click)="vm.sendReminder()">
+              {{ vm.isSendingReminder() ? 'Enviando...' : '📱 Enviar recordatorio' }}
+            </app-button>
+          }
+        </div>
+
+        @if (vm.reminders().length === 0) {
+          <p class="reminder-empty">No se han enviado recordatorios para esta cita.</p>
+        } @else {
+          <div class="reminder-list">
+            @for (r of vm.reminders(); track r.id) {
+              <div class="reminder-item">
+                <div class="reminder-item__top">
+                  <span class="reminder-item__type">{{ r.type }}</span>
+                  <span class="reminder-item__date">{{ r.sentAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <p class="reminder-item__msg">{{ r.message }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
     </div>
 
     <div class="detail-actions">

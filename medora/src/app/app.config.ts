@@ -27,7 +27,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
 
     // Override API URL — replace with environment variable in production
-    { provide: API_URL, useValue: 'http://localhost:3000' },
+    { provide: API_URL, useValue: 'https://joyful-trust-dev.up.railway.app' },
 
     // Spanish locale
     { provide: LOCALE_ID, useValue: 'es' },
