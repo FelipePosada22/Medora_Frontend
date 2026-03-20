@@ -1,8 +1,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
+COPY medora/package*.json ./
 RUN npm install
-COPY . .
+COPY medora/ .
 RUN npm run build
 
 FROM node:20-alpine

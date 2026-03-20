@@ -1,2 +1,2 @@
 [build]
-dockerfilePath = "medora/Dockerfile"
+dockerfilePath = "Dockerfile"
