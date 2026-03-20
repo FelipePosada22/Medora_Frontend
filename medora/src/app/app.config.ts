@@ -14,6 +14,7 @@ registerLocaleData(localeEs);
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { API_URL } from './core/config/api.config';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,8 +27,7 @@ export const appConfig: ApplicationConfig = {
     // HTTP client with auth interceptor
     provideHttpClient(withInterceptors([authInterceptor])),
 
-    // Override API URL — replace with environment variable in production
-    { provide: API_URL, useValue: 'https://joyful-trust-dev.up.railway.app' },
+    { provide: API_URL, useValue: environment.apiUrl },
 
     // Spanish locale
     { provide: LOCALE_ID, useValue: 'es' },
