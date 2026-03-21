@@ -1,9 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject, input, effect, signal } from '@angular/core';
+import { CurrencyService } from '../../../../core/currency/currency.service';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PatientDetailViewModel } from '../../view-models/patient-detail.viewmodel';
 import type { BadgeVariant } from '../../../../shared/components/badge/badge.component';
 
@@ -12,7 +12,7 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
   templateUrl: './patient-detail-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [PatientDetailViewModel],
-  imports: [RouterLink, CurrencyPipe, DatePipe, CardComponent, BadgeComponent, ButtonComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, CardComponent, BadgeComponent],
   styles: [`
     .back-link {
       display: inline-flex; align-items: center; gap: var(--space-1);
@@ -238,7 +238,8 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
 })
 export class PatientDetailPageComponent {
   readonly id = input.required<string>();
-  protected readonly vm = inject(PatientDetailViewModel);
+  protected readonly vm           = inject(PatientDetailViewModel);
+  protected readonly currencyCode = inject(CurrencyService).currencyCode;
 
   constructor() {
     effect(() => {

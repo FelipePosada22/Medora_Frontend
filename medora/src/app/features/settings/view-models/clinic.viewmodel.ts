@@ -3,12 +3,14 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClinicApi } from '../api/clinic.api';
 import { ToastService } from '../../../core/toast/toast.service';
+import { CurrencyService } from '../../../core/currency/currency.service';
 
 @Injectable()
 export class ClinicViewModel {
-  private readonly api   = inject(ClinicApi);
-  private readonly fb    = inject(FormBuilder);
-  private readonly toast = inject(ToastService);
+  private readonly api             = inject(ClinicApi);
+  private readonly fb              = inject(FormBuilder);
+  private readonly toast           = inject(ToastService);
+  private readonly currencyService = inject(CurrencyService);
 
   readonly isLoading = signal(true);
   readonly isSaving  = signal(false);
@@ -35,6 +37,7 @@ export class ClinicViewModel {
           timezone: clinic.timezone      ?? '',
           currency: clinic.currency      ?? '',
         });
+        this.currencyService.set(clinic.currency ?? '');
         this.isLoading.set(false);
       },
       error: () => {
@@ -61,6 +64,7 @@ export class ClinicViewModel {
     this.api.update(payload).subscribe({
       next: clinic => {
         this.slug.set(clinic.slug);
+        this.currencyService.set(this.form.getRawValue().currency);
         this.isSaving.set(false);
         this.toast.success('Información de la clínica actualizada.');
       },

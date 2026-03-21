@@ -86,7 +86,7 @@
                   }
                 </div>
               </td>
-              <td><strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              <td><strong>{{ plan.total | currency:currencyCode():'symbol':'1.2-2' }}</strong></td>
               <td><app-badge [variant]="planBadge(plan.status)">{{ vm.planStatusLabel(plan.status) }}</app-badge></td>
               <td>
                 <app-button variant="ghost" size="sm" (click)="vm.selectPlan(plan)">Ver</app-button>
@@ -181,7 +181,7 @@
         }
 
         <div class="items-total">
-          Total estimado: {{ vm.getCreateTotal() | currency:'USD':'symbol':'1.2-2' }}
+          Total estimado: {{ vm.getCreateTotal() | currency:currencyCode():'symbol':'1.2-2' }}
         </div>
       </div>
 
@@ -229,7 +229,7 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">Total</span>
-          <span class="detail-value"><strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong></span>
+          <span class="detail-value"><strong>{{ plan.total | currency:currencyCode():'symbol':'1.2-2' }}</strong></span>
         </div>
       </div>
 
@@ -287,7 +287,7 @@
                     }
                   </div>
                   <div class="treatment-item__right">
-                    <span>{{ item.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                    <span>{{ item.price | currency:currencyCode():'symbol':'1.2-2' }}</span>
                     <app-badge [variant]="itemBadge(item.status)">{{ vm.itemStatusLabel(item.status) }}</app-badge>
                   </div>
                 </div>
@@ -327,8 +327,8 @@
           <div class="plan-invoices__header">
             <span class="detail-label">Facturas del plan</span>
             <span class="plan-invoices__summary">
-              Pagado: <strong>{{ plan.totalPaid | currency:'USD':'symbol':'1.2-2' }}</strong>
-              / Total: <strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong>
+              Pagado: <strong>{{ plan.totalPaid | currency:currencyCode():'symbol':'1.2-2' }}</strong>
+              / Total: <strong>{{ plan.total | currency:currencyCode():'symbol':'1.2-2' }}</strong>
             </span>
           </div>
           @for (inv of plan.invoices; track inv.id) {
@@ -340,10 +340,10 @@
                 </span>
               </div>
               <div class="plan-invoice-row__right">
-                <span class="plan-invoice-row__total">{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</span>
+                <span class="plan-invoice-row__total">{{ inv.total | currency:currencyCode():'symbol':'1.2-2' }}</span>
                 <app-badge [variant]="invoiceBadge(inv.status)">{{ invoiceLabel(inv.status) }}</app-badge>
                 @if (inv.balance > 0) {
-                  <span class="plan-invoice-row__balance">Saldo: {{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+                  <span class="plan-invoice-row__balance">Saldo: {{ inv.balance | currency:currencyCode():'symbol':'1.2-2' }}</span>
                 }
                 <a class="plan-invoice-link" [routerLink]="['/billing']" [queryParams]="{ invoiceId: inv.id }">
                   Ver →
@@ -381,12 +381,12 @@
                       [checked]="vm.isInvoiceItemSelected(item.id)"
                       (change)="vm.toggleInvoiceItem(item.id)" />
                     <span class="invoice-item-check__desc">{{ item.description }}</span>
-                    <span class="invoice-item-check__price">{{ item.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                    <span class="invoice-item-check__price">{{ item.price | currency:currencyCode():'symbol':'1.2-2' }}</span>
                   </label>
                 }
                 <div class="invoice-item-list__total">
                   <span>Total seleccionado</span>
-                  <strong>{{ invoiceSelectedTotal() | currency:'USD':'symbol':'1.2-2' }}</strong>
+                  <strong>{{ invoiceSelectedTotal() | currency:currencyCode():'symbol':'1.2-2' }}</strong>
                 </div>
               </div>
             }

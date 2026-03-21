@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { CurrencyService } from '../../../../core/currency/currency.service';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -236,7 +237,8 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
   `],
 })
 export class TreatmentPlansPageComponent {
-  protected readonly vm = inject(TreatmentPlansViewModel);
+  protected readonly vm           = inject(TreatmentPlansViewModel);
+  protected readonly currencyCode = inject(CurrencyService).currencyCode;
 
   constructor() {
     const params = inject(ActivatedRoute).snapshot.queryParamMap;

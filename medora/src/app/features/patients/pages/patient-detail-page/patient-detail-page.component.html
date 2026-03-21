@@ -58,14 +58,14 @@
       <app-card padding="none">
         <div class="stat-card">
           <div class="stat-card__label">Total pagado</div>
-          <div class="stat-card__value stat-card__value--green">{{ vm.totalSpent() | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="stat-card__value stat-card__value--green">{{ vm.totalSpent() | currency:currencyCode():'symbol':'1.0-0' }}</div>
         </div>
       </app-card>
       <app-card padding="none">
         <div class="stat-card">
           <div class="stat-card__label">Saldo pendiente</div>
           <div class="stat-card__value" [class.stat-card__value--red]="vm.pendingBalance() > 0">
-            {{ vm.pendingBalance() | currency:'USD':'symbol':'1.0-0' }}
+            {{ vm.pendingBalance() | currency:currencyCode():'symbol':'1.0-0' }}
           </div>
         </div>
       </app-card>
@@ -153,7 +153,7 @@
                       <div class="appt-info__time">
                         {{ appt.startTime | date:'HH:mm':'UTC' }} – {{ appt.endTime | date:'HH:mm':'UTC' }}
                         · {{ appt.durationMinutes }} min
-                        · {{ appt.price | currency:'USD':'symbol':'1.0-0' }}
+                        · {{ appt.price | currency:currencyCode():'symbol':'1.0-0' }}
                       </div>
                       @if (appt.notes) {
                         <div class="appt-info__notes">{{ appt.notes }}</div>
@@ -204,11 +204,11 @@
                         }
                       </td>
                       <td>{{ inv.items.length }}</td>
-                      <td><strong>{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
-                      <td style="color: var(--color-success-600)">{{ inv.paid | currency:'USD':'symbol':'1.2-2' }}</td>
+                      <td><strong>{{ inv.total | currency:currencyCode():'symbol':'1.2-2' }}</strong></td>
+                      <td style="color: var(--color-success-600)">{{ inv.paid | currency:currencyCode():'symbol':'1.2-2' }}</td>
                       <td>
                         @if (inv.balance > 0) {
-                          <span style="color: var(--color-warning-700)">{{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+                          <span style="color: var(--color-warning-700)">{{ inv.balance | currency:currencyCode():'symbol':'1.2-2' }}</span>
                         } @else {
                           <span style="color: var(--color-success-600)">Saldado</span>
                         }
@@ -243,8 +243,8 @@
                                     <tr>
                                       <td>{{ item.description }}</td>
                                       <td>{{ item.quantity }}</td>
-                                      <td>{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
-                                      <td><strong>{{ item.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+                                      <td>{{ item.unitPrice | currency:currencyCode():'symbol':'1.2-2' }}</td>
+                                      <td><strong>{{ item.total | currency:currencyCode():'symbol':'1.2-2' }}</strong></td>
                                     </tr>
                                   }
                                 </tbody>
@@ -274,7 +274,7 @@
                                         <td>{{ pay.paidAt | date:'dd/MM/yyyy':'UTC' }}</td>
                                         <td>{{ paymentMethodLabel(pay.method) }}</td>
                                         <td>{{ pay.reference ?? '—' }}</td>
-                                        <td style="color: var(--color-success-600)">{{ pay.amount | currency:'USD':'symbol':'1.2-2' }}</td>
+                                        <td style="color: var(--color-success-600)">{{ pay.amount | currency:currencyCode():'symbol':'1.2-2' }}</td>
                                       </tr>
                                     }
                                   </tbody>
@@ -316,7 +316,7 @@
                         @for (item of plan.items.slice(0, 4); track item.id) {
                           <div class="plan-item-row">
                             <span>{{ item.description }}</span>
-                            <span>{{ item.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                            <span>{{ item.price | currency:currencyCode():'symbol':'1.2-2' }}</span>
                           </div>
                         }
                         @if (plan.items.length > 4) {
@@ -328,7 +328,7 @@
                     }
                     <div class="plan-card__footer">
                       <span style="color:var(--color-text-muted)">Total</span>
-                      <strong>{{ plan.total | currency:'USD':'symbol':'1.2-2' }}</strong>
+                      <strong>{{ plan.total | currency:currencyCode():'symbol':'1.2-2' }}</strong>
                     </div>
                   </div>
                 }

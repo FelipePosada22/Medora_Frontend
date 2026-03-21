@@ -3,6 +3,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AuthStateService } from '../../../../core/auth/services/auth-state.service';
+import { CurrencyService } from '../../../../core/currency/currency.service';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -334,6 +335,7 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
 export class BillingPageComponent {
   protected readonly vm            = inject(BillingViewModel);
   protected readonly InvoiceStatus = InvoiceStatus;
+  protected readonly currencyCode  = inject(CurrencyService).currencyCode;
 
   private readonly authState      = inject(AuthStateService);
   private readonly pdfService     = inject(InvoicePdfService);

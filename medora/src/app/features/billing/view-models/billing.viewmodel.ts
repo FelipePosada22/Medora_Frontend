@@ -235,11 +235,13 @@ export class BillingViewModel {
       next: full => {
         this.selectedInvoice.set(full);
         this.paymentForm.reset({ amount: 0, method: PaymentMethod.CASH, reference: '' });
+        this._applyPaymentMaxValidator(full.balance);
         this.refundPaymentId.set(null);
         this._loadRefunds(full.id);
       },
       error: () => {
         this.selectedInvoice.set(invoice);
+        this._applyPaymentMaxValidator(invoice.balance);
         this._loadRefunds(invoice.id);
       },
     });
@@ -473,8 +475,16 @@ export class BillingViewModel {
       next: updated => {
         this.selectedInvoice.set(updated);
         this.invoices.update(list => list.map(i => i.id === updated.id ? updated : i));
+        this._applyPaymentMaxValidator(updated.balance);
       },
     });
+  }
+
+  private _applyPaymentMaxValidator(balance: number): void {
+    this.paymentForm.get('amount')?.setValidators([
+      Validators.required, Validators.min(0.01), Validators.max(balance),
+    ]);
+    this.paymentForm.get('amount')?.updateValueAndValidity();
   }
 
   private _loadRefunds(invoiceId: string): void {

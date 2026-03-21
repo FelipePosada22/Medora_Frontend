@@ -45,9 +45,9 @@
       <app-card padding="none">
         <div class="kpi-card">
           <div class="kpi-card__icon kpi-card__icon--green">💰</div>
-          <div class="kpi-card__label">Ingresos hoy</div>
-          <div class="kpi-card__value">{{ d.revenue.today | currency:'USD':'symbol':'1.0-0' }}</div>
-          <div class="kpi-card__sub">Pagos registrados hoy</div>
+          <div class="kpi-card__label">{{ vm.revenueLabel() }}</div>
+          <div class="kpi-card__value">{{ vm.revenueAmount() | currency:currencyCode():'symbol':'1.0-0' }}</div>
+          <div class="kpi-card__sub">Pagos registrados en el período</div>
         </div>
       </app-card>
 
@@ -64,7 +64,7 @@
         <div class="kpi-card">
           <div class="kpi-card__icon kpi-card__icon--amber">⏳</div>
           <div class="kpi-card__label">Saldo pendiente</div>
-          <div class="kpi-card__value">{{ d.revenue.pendingAmount | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="kpi-card__value">{{ d.revenue.pendingAmount | currency:currencyCode():'symbol':'1.0-0' }}</div>
           <div class="kpi-card__sub">{{ d.revenue.pendingInvoicesCount }} factura(s) por cobrar</div>
         </div>
       </app-card>
@@ -98,7 +98,7 @@
         </div>
         <div class="stat-cell">
           <div class="stat-cell__label">Ingresos del período</div>
-          <div class="stat-cell__value stat-cell__value--green">{{ d.revenue.inPeriod | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="stat-cell__value stat-cell__value--green">{{ d.revenue.inPeriod | currency:currencyCode():'symbol':'1.0-0' }}</div>
         </div>
       </div>
 
@@ -199,7 +199,7 @@
             @for (inv of d.revenue.pendingInvoices; track inv.id) {
               <div class="inv-item">
                 <div class="inv-item__name">{{ inv.patient.name }}</div>
-                <div class="inv-item__amount">{{ inv.total | currency:'USD':'symbol':'1.0-0' }}</div>
+                <div class="inv-item__amount">{{ inv.total | currency:currencyCode():'symbol':'1.0-0' }}</div>
               </div>
             }
           </app-card>

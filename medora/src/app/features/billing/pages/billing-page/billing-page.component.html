@@ -17,25 +17,25 @@
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Ingresos totales</div>
-        <div class="stat-card__value">{{ vm.stats().total | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value">{{ vm.stats().total | currency:currencyCode():'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Pagado</div>
-        <div class="stat-card__value stat-card__value--green">{{ vm.stats().paid | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value stat-card__value--green">{{ vm.stats().paid | currency:currencyCode():'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Pendiente / Emitido</div>
-        <div class="stat-card__value stat-card__value--amber">{{ vm.stats().pending | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value stat-card__value--amber">{{ vm.stats().pending | currency:currencyCode():'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
     <app-card padding="none">
       <div class="stat-card">
         <div class="stat-card__label">Vencido</div>
-        <div class="stat-card__value stat-card__value--red">{{ vm.stats().overdue | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="stat-card__value stat-card__value--red">{{ vm.stats().overdue | currency:currencyCode():'symbol':'1.2-2' }}</div>
       </div>
     </app-card>
   </div>
@@ -84,10 +84,10 @@
                 </div>
               </td>
               <td>{{ inv.items.length }}</td>
-              <td><strong>{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              <td><strong>{{ inv.total | currency:currencyCode():'symbol':'1.2-2' }}</strong></td>
               <td>
                 @if (inv.balance > 0) {
-                  <span style="color: var(--color-warning-700)">{{ inv.balance | currency:'USD':'symbol':'1.2-2' }}</span>
+                  <span style="color: var(--color-warning-700)">{{ inv.balance | currency:currencyCode():'symbol':'1.2-2' }}</span>
                 } @else {
                   <span style="color: var(--color-success-600)">Saldado</span>
                 }
@@ -187,7 +187,7 @@
         }
 
         <div class="items-total">
-          Total estimado: {{ vm.getCreateTotal() | currency:'USD':'symbol':'1.2-2' }}
+          Total estimado: {{ vm.getCreateTotal() | currency:currencyCode():'symbol':'1.2-2' }}
         </div>
       </div>
 
@@ -313,8 +313,8 @@
               <tr>
                 <td>{{ item.description }}</td>
                 <td class="text-right">{{ item.quantity }}</td>
-                <td class="text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
-                <td class="text-right">{{ item.total | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td class="text-right">{{ item.unitPrice | currency:currencyCode():'symbol':'1.2-2' }}</td>
+                <td class="text-right">{{ item.total | currency:currencyCode():'symbol':'1.2-2' }}</td>
                 @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
                   <td class="item-actions-cell">
                     <button class="item-inline-btn" title="Editar" (click)="vm.openEditItem(item)">✎</button>
@@ -359,7 +359,7 @@
           <tfoot>
             <tr>
               <td colspan="3" class="text-right">Total</td>
-              <td class="text-right">{{ inv.total | currency:'USD':'symbol':'1.2-2' }}</td>
+              <td class="text-right">{{ inv.total | currency:currencyCode():'symbol':'1.2-2' }}</td>
               @if (inv.status === InvoiceStatus.DRAFT && !isDoctor()) {
                 <td></td>
               }
@@ -412,7 +412,7 @@
                   @if (p.reference) { <span class="payment-block__ref">{{ p.reference }}</span> }
                 </div>
                 <div class="payment-block__right">
-                  <strong>{{ p.amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+                  <strong>{{ p.amount | currency:currencyCode():'symbol':'1.2-2' }}</strong>
                   @if (refundable > 0 && inv.status !== InvoiceStatus.CANCELLED && !isDoctor()) {
                     <app-button variant="ghost" size="sm"
                       (click)="vm.refundPaymentId() === p.id ? vm.closeRefundForm() : vm.openRefundForm(p)">
@@ -427,7 +427,7 @@
                 @for (r of refunds; track r.id) {
                   <div class="refund-row">
                     <span>↩ Devolución · {{ r.reason }}</span>
-                    <span class="refund-row__amount">−{{ r.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+                    <span class="refund-row__amount">−{{ r.amount | currency:currencyCode():'symbol':'1.2-2' }}</span>
                   </div>
                 }
               }
@@ -441,7 +441,7 @@
                       <input class="form-input" type="number" formControlName="amount"
                         min="0.01" [max]="vm.maxRefundableAmount" step="0.01" />
                       <span class="form-label" style="color:var(--color-text-muted)">
-                        Máximo: {{ refundable | currency:'USD':'symbol':'1.2-2' }}
+                        Máximo: {{ refundable | currency:currencyCode():'symbol':'1.2-2' }}
                       </span>
                     </div>
                     <div class="form-group">
@@ -475,7 +475,7 @@
       <!-- Balance -->
       <div class="balance-box">
         <span>Saldo pendiente</span>
-        <span class="balance-amount">{{ vm.netBalance() | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span class="balance-amount">{{ vm.netBalance() | currency:currencyCode():'symbol':'1.2-2' }}</span>
       </div>
 
       <!-- Status actions — hidden for doctors (read-only on issued/paid) -->
@@ -499,9 +499,11 @@
             <div class="payment-grid">
               <div class="form-group">
                 <label class="form-label form-label--required">Monto</label>
-                <input class="form-input" type="number" formControlName="amount" min="0.01" step="0.01"
+                <input class="form-input" type="number" formControlName="amount" min="0.01" [max]="inv.balance" step="0.01"
                   [placeholder]="inv.balance.toString()" />
-                @if (vm.paymentForm.get('amount')?.invalid && vm.paymentForm.get('amount')?.touched) {
+                @if (vm.paymentForm.get('amount')?.errors?.['max'] && vm.paymentForm.get('amount')?.touched) {
+                  <span class="form-error">El monto no puede superar el saldo pendiente ({{ inv.balance | currency:currencyCode():'symbol':'1.0-0' }})</span>
+                } @else if (vm.paymentForm.get('amount')?.invalid && vm.paymentForm.get('amount')?.touched) {
                   <span class="form-error">Ingresa un monto válido</span>
                 }
               </div>

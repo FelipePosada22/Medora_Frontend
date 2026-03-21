@@ -78,6 +78,21 @@ export class DashboardViewModel {
     return days.map(d => ({ ...d, pct: Math.round((d.count / max) * 100) }));
   });
 
+  private readonly REVENUE_LABELS: Record<PeriodKey, string> = {
+    'today':      'Ingresos hoy',
+    'week':       'Ingresos esta semana',
+    'month':      'Ingresos este mes',
+    'prev-month': 'Ingresos mes anterior',
+  };
+
+  readonly revenueLabel = computed(() => this.REVENUE_LABELS[this.selectedPeriod()]);
+
+  readonly revenueAmount = computed(() => {
+    const d = this.data();
+    if (!d) return 0;
+    return this.selectedPeriod() === 'today' ? d.revenue.today : d.revenue.inPeriod;
+  });
+
   // ── Constructor ────────────────────────────────────────────────────────────
 
   constructor() {

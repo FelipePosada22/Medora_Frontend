@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { CurrencyService } from '../../../../core/currency/currency.service';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -153,8 +154,9 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
   `],
 })
 export class DashboardPageComponent {
-  protected readonly vm = inject(DashboardViewModel);
+  protected readonly vm           = inject(DashboardViewModel);
   protected readonly AppointmentStatus = AppointmentStatus;
+  protected readonly currencyCode = inject(CurrencyService).currencyCode;
 
   protected statusBadge(status: string): BadgeVariant {
     const map: Record<string, BadgeVariant> = {
