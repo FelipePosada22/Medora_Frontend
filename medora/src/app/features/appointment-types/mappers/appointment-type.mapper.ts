@@ -7,7 +7,7 @@ export class AppointmentTypeMapper {
       id:              dto.id,
       name:            dto.name,
       durationMinutes: dto.durationMinutes,
-      price:           dto.price,
+      price:           dto.price ?? 0,
     };
   }
 

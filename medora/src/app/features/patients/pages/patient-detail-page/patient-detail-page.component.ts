@@ -32,7 +32,7 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
     }
 
     .patient-hero {
-      display: flex; align-items: center; gap: var(--space-4);
+      display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
       padding: var(--space-5);
     }
     .patient-avatar {

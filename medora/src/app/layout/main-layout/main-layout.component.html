@@ -1,8 +1,12 @@
 <div class="layout">
-  <app-sidebar />
+  @if (mobileMenuOpen()) {
+    <div class="layout__overlay" (click)="closeMobileMenu()"></div>
+  }
+
+  <app-sidebar [mobileOpen]="mobileMenuOpen()" (closeMenu)="closeMobileMenu()" />
 
   <div class="layout__content">
-    <app-header />
+    <app-header (menuToggle)="toggleMobileMenu()" />
     <main class="layout__main">
       <router-outlet />
     </main>

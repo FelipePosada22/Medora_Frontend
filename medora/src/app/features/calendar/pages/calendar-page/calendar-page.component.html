@@ -67,6 +67,7 @@
 
         <!-- ── Day / Week grid ───────────────────────────────────────────── -->
         @case ('day') {
+          <div class="calendar-grid-wrap">
           <div class="calendar-grid calendar-grid--day">
             <div class="cal-corner"></div>
             @for (day of vm.viewDays(); track day.index) {
@@ -89,9 +90,11 @@
               }
             }
           </div>
+          </div>
         }
 
         @case ('week') {
+          <div class="calendar-grid-wrap">
           <div class="calendar-grid">
             <div class="cal-corner"></div>
             @for (day of vm.viewDays(); track day.index) {
@@ -113,6 +116,7 @@
                 </div>
               }
             }
+          </div>
           </div>
         }
 

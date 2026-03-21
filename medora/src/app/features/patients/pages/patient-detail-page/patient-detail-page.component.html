@@ -172,6 +172,7 @@
             @if (vm.invoices().length === 0) {
               <div class="state-placeholder">Este paciente no tiene facturas registradas.</div>
             } @else {
+              <div class="table-responsive">
               <table class="table">
                 <thead>
                   <tr>
@@ -287,6 +288,7 @@
                   }
                 </tbody>
               </table>
+              </div>
             }
           }
 

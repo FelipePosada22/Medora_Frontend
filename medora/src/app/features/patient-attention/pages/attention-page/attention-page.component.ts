@@ -30,6 +30,13 @@ interface ExamOrder    { exam: string; priority: 'routine' | 'urgent'; notes: st
     }
     @media (max-width: 1024px) { .attention-layout { grid-template-columns: 1fr; } }
 
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr 160px;
+      gap: var(--space-3);
+      @media (max-width: 640px) { grid-template-columns: 1fr; }
+    }
+
     .attention-tabs {
       display: flex;
       gap: var(--space-1);

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { AuthStateService, SessionUser } from '../../core/auth/services/auth-state.service';
@@ -20,6 +20,9 @@ const ALL_ROLES: SessionUser['role'][] = ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'AU
 })
 export class SidebarComponent {
   private readonly authState = inject(AuthStateService);
+
+  readonly mobileOpen = input(false);
+  readonly closeMenu  = output<void>();
 
   protected readonly user        = this.authState.user;
   protected readonly isCollapsed = signal(false);
@@ -46,5 +49,9 @@ export class SidebarComponent {
 
   protected toggleCollapse(): void {
     this.isCollapsed.update(v => !v);
+  }
+
+  protected closeMobile(): void {
+    this.closeMenu.emit();
   }
 }

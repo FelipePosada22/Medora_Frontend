@@ -28,6 +28,7 @@ type SettingsTab = 'clinic' | 'users' | 'preferences';
       grid-template-columns: 200px 1fr;
       gap: var(--space-6);
       align-items: start;
+      > * { min-width: 0; }
     }
     @media (max-width: 768px) { .settings-layout { grid-template-columns: 1fr; } }
 

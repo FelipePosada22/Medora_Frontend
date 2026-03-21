@@ -42,6 +42,7 @@ import { ProfessionalsViewModel } from '../../view-models/professionals.viewmode
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: var(--space-4);
+      @media (max-width: 640px) { grid-template-columns: 1fr; }
     }
     .stat-card {
       text-align: center;

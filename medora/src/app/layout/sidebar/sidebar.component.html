@@ -1,4 +1,4 @@
-<aside class="sidebar" [class.sidebar--collapsed]="isCollapsed()">
+<aside class="sidebar" [class.sidebar--collapsed]="isCollapsed()" [class.sidebar--mobile-open]="mobileOpen()">
   <!-- Brand -->
   <div class="sidebar__brand">
     <span class="sidebar__logo">M</span>
@@ -8,9 +8,10 @@
         <span class="sidebar__brand-sub">Clinical SaaS</span>
       </div>
     }
-    <button class="sidebar__toggle" (click)="toggleCollapse()" aria-label="Toggle sidebar">
+    <button class="sidebar__toggle sidebar__toggle--desktop" (click)="toggleCollapse()" aria-label="Toggle sidebar">
       <span>{{ isCollapsed() ? '›' : '‹' }}</span>
     </button>
+    <button class="sidebar__toggle sidebar__toggle--mobile" (click)="closeMobile()" aria-label="Cerrar menú">✕</button>
   </div>
 
   <!-- Navigation -->

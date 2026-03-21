@@ -10,7 +10,7 @@ export interface AppointmentTypeDto {
   tenantId: string;
   name: string;
   durationMinutes: number;
-  price: number;
+  price: number | null;
   createdAt: string;
 }
 

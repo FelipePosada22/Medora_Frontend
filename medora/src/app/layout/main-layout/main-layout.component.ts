@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HeaderComponent } from '../header/header.component';
@@ -24,10 +24,16 @@ import { HeaderComponent } from '../header/header.component';
       flex-direction: column;
       overflow: hidden;
     }
-    .layout__main {
-      flex: 1;
-      overflow-y: auto;
-      padding: var(--space-6);
+    /* Mobile overlay backdrop */
+    .layout__overlay {
+      display: none;
+      @media (max-width: 768px) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: var(--color-surface-overlay);
+        z-index: calc(var(--z-overlay) - 1);
+      }
     }
 
     /* Sidebar — blanco con borde derecho (fiel al Figma) */
@@ -41,8 +47,24 @@ import { HeaderComponent } from '../header/header.component';
       transition: width var(--transition-normal);
       overflow: hidden;
       flex-shrink: 0;
+
+      // Mobile: drawer fijo, oculto por defecto
+      @media (max-width: 768px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: var(--z-overlay);
+        transform: translateX(-100%);
+        transition: transform var(--transition-normal);
+        box-shadow: var(--shadow-xl);
+      }
     }
     :host ::ng-deep .sidebar--collapsed { width: var(--sidebar-collapsed-width); }
+    :host ::ng-deep .sidebar--mobile-open {
+      @media (max-width: 768px) {
+        transform: translateX(0);
+      }
+    }
 
     :host ::ng-deep .sidebar__brand {
       display: flex;
@@ -130,6 +152,25 @@ import { HeaderComponent } from '../header/header.component';
       font-size: var(--font-size-xs);
     }
 
+    /* Sidebar toggle buttons visibility */
+    :host ::ng-deep .sidebar__toggle--desktop {
+      display: flex;
+      @media (max-width: 768px) { display: none; }
+    }
+    :host ::ng-deep .sidebar__toggle--mobile {
+      display: none;
+      @media (max-width: 768px) { display: flex; }
+    }
+
+    /* layout__main padding responsive */
+    .layout__main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: var(--space-6);
+      @media (max-width: 640px) { padding: var(--space-4); }
+    }
+
     /* Header styles */
     :host ::ng-deep .header {
       height: var(--header-height);
@@ -140,6 +181,33 @@ import { HeaderComponent } from '../header/header.component';
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
       flex-shrink: 0;
+      @media (max-width: 768px) { padding: 0 var(--space-4); }
+    }
+    :host ::ng-deep .header__left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    :host ::ng-deep .header__hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 22px;
+      height: 16px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+      span {
+        display: block;
+        height: 2px;
+        background: var(--color-text-primary);
+        border-radius: 2px;
+        transition: background var(--transition-fast);
+      }
+      &:hover span { background: var(--color-primary-600); }
+      @media (max-width: 768px) { display: flex; }
     }
     :host ::ng-deep .header__title {
       font-size: var(--font-size-xl);
@@ -231,4 +299,14 @@ import { HeaderComponent } from '../header/header.component';
     }
   `],
 })
-export class MainLayoutComponent {}
+export class MainLayoutComponent {
+  protected readonly mobileMenuOpen = signal(false);
+
+  protected toggleMobileMenu(): void {
+    this.mobileMenuOpen.update(v => !v);
+  }
+
+  protected closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
+}

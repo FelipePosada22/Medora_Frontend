@@ -37,6 +37,7 @@
     @if (vm.isLoading()) {
       <div class="state-placeholder">Cargando citas...</div>
     } @else {
+      <div class="table-responsive">
       <table class="table">
         <thead>
           <tr>
@@ -93,6 +94,7 @@
           }
         </tbody>
       </table>
+      </div>
     }
   </app-card>
 

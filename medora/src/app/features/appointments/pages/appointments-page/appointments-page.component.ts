@@ -25,6 +25,10 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
       gap: var(--space-1);
       border-bottom: 1px solid var(--color-border);
       margin-bottom: var(--space-4);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
     }
     .status-tab {
       padding: var(--space-2) var(--space-4);
@@ -35,6 +39,8 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
       margin-bottom: -1px;
       cursor: pointer;
       background: none;
+      white-space: nowrap;
+      flex-shrink: 0;
       border-top: none; border-left: none; border-right: none;
       transition: all var(--transition-fast);
     }

@@ -62,6 +62,10 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
     }
 
     /* Day / Week grid */
+    .calendar-grid-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .calendar-grid {
       display: grid;
       grid-template-columns: 56px repeat(7, 1fr);
@@ -69,6 +73,7 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
       border-radius: var(--radius-lg);
       overflow: hidden;
       font-size: var(--font-size-xs);
+      @media (max-width: 768px) { min-width: 600px; }
     }
     .calendar-grid--day { grid-template-columns: 56px 1fr; }
 

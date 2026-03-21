@@ -43,7 +43,7 @@
               <label class="form-label">Examen físico</label>
               <textarea class="form-textarea" rows="3" formControlName="physicalExam" placeholder="Hallazgos del examen clínico..."></textarea>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 160px; gap:var(--space-3)">
+            <div class="diag-grid">
               <div class="form-field" style="margin-bottom:0">
                 <label class="form-label">Diagnóstico</label>
                 <input class="form-input" formControlName="diagnosis" placeholder="Descripción del diagnóstico..." />
@@ -88,6 +88,7 @@
             <p style="font-weight:var(--font-weight-semibold)">Órdenes de examen</p>
             <app-button variant="secondary" size="sm">+ Ordenar examen</app-button>
           </div>
+          <div class="table-responsive">
           <table class="table">
             <thead>
               <tr>
@@ -112,6 +113,7 @@
               }
             </tbody>
           </table>
+          </div>
         </app-card>
       }
     </div>

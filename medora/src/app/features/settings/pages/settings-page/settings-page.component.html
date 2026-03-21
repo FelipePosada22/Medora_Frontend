@@ -130,6 +130,7 @@
           } @else if (usersVm.errorMessage()) {
             <div class="alert alert--error" style="margin:var(--space-5)">{{ usersVm.errorMessage() }}</div>
           } @else {
+            <div class="table-responsive">
             <table class="table">
               <thead>
                 <tr>
@@ -167,6 +168,7 @@
                 }
               </tbody>
             </table>
+            </div>
           }
         </app-card>
       }
