@@ -19,7 +19,7 @@ export class UsersApi {
   }
 
   update(id: string, payload: UpdateUserPayload): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}`, payload);
+    return this.http.patch<void>(`${this.baseUrl}/${id}`, payload);
   }
 
   remove(id: string): Observable<void> {

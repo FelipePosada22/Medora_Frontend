@@ -15,6 +15,7 @@ export interface StaffUser {
   name: string;
   email: string;
   role: UserRole;
+  professionalId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,4 +32,5 @@ export interface UpdateUserPayload {
   email?: string;
   role?: UserRole;
   password?: string;
+  professionalId?: string | null;
 }

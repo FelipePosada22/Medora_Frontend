@@ -297,6 +297,175 @@ import { HeaderComponent } from '../header/header.component';
       color: var(--color-error-600);
       &:hover { background: var(--color-error-50, #fef2f2); }
     }
+
+    /* Header actions row */
+    :host ::ng-deep .header__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    /* Notification bell */
+    @keyframes bell-ring {
+      0%   { transform: rotate(0deg);    }
+      10%  { transform: rotate(18deg);   }
+      20%  { transform: rotate(-16deg);  }
+      30%  { transform: rotate(14deg);   }
+      40%  { transform: rotate(-10deg);  }
+      50%  { transform: rotate(6deg);    }
+      60%  { transform: rotate(-4deg);   }
+      70%  { transform: rotate(2deg);    }
+      80%  { transform: rotate(0deg);    }
+      100% { transform: rotate(0deg);    }
+    }
+
+    :host ::ng-deep .header__notif-menu {
+      position: relative;
+    }
+    :host ::ng-deep .header__notif-btn {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border-radius: var(--radius-md);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transform-origin: top center;
+      &:hover { background: var(--color-neutral-100); }
+    }
+    :host ::ng-deep .header__notif-btn--ringing {
+      animation: bell-ring 1.2s ease-in-out infinite;
+      animation-delay: 2s;
+    }
+    :host ::ng-deep .header__notif-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 16px;
+      height: 16px;
+      background: var(--color-error-600);
+      color: white;
+      font-size: 10px;
+      font-weight: var(--font-weight-semibold);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+      line-height: 1;
+    }
+
+    /* Notification panel */
+    :host ::ng-deep .header__notif-panel {
+      position: absolute;
+      top: calc(100% + var(--space-2));
+      right: 0;
+      width: 360px;
+      max-height: 480px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      z-index: 11;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      @media (max-width: 640px) {
+        position: fixed;
+        top: calc(var(--header-height) + var(--space-2));
+        left: var(--space-3);
+        right: var(--space-3);
+        width: auto;
+        max-height: calc(100dvh - var(--header-height) - var(--space-6));
+      }
+    }
+    :host ::ng-deep .header__notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    :host ::ng-deep .header__notif-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+    }
+    :host ::ng-deep .header__notif-mark-all {
+      font-size: var(--font-size-xs);
+      color: var(--color-primary-600);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      &:hover { text-decoration: underline; }
+    }
+    :host ::ng-deep .header__notif-list {
+      overflow-y: auto;
+      flex: 1;
+    }
+    :host ::ng-deep .header__notif-state {
+      padding: var(--space-6) var(--space-4);
+      text-align: center;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+    :host ::ng-deep .header__notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      text-align: left;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border);
+      transition: background var(--transition-fast);
+      &:last-child { border-bottom: none; }
+      &:hover { background: var(--color-neutral-50); }
+    }
+    :host ::ng-deep .header__notif-item--unread {
+      background: var(--color-primary-50);
+      &:hover { background: var(--color-primary-100); }
+    }
+    :host ::ng-deep .header__notif-dot {
+      width: 8px;
+      height: 8px;
+      min-width: 8px;
+      background: var(--color-primary-600);
+      border-radius: 50%;
+      margin-top: 4px;
+    }
+    :host ::ng-deep .header__notif-item-body {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    :host ::ng-deep .header__notif-item-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-primary);
+    }
+    :host ::ng-deep .header__notif-item-text {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    :host ::ng-deep .header__notif-item-time {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
   `],
 })
 export class MainLayoutComponent {

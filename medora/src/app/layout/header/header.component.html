@@ -8,6 +8,50 @@
 
   <div class="header__actions">
     @if (user()) {
+
+      <!-- Notification bell -->
+      <div class="header__notif-menu">
+        <button class="header__notif-btn" [class.header__notif-btn--ringing]="notif.unreadCount() > 0" (click)="toggleNotif()" aria-label="Notificaciones">
+          🔔
+          @if (notif.unreadCount() > 0) {
+            <span class="header__notif-badge">{{ notif.unreadCount() > 99 ? '99+' : notif.unreadCount() }}</span>
+          }
+        </button>
+
+        @if (notif.isOpen()) {
+          <div class="header__backdrop" (click)="notif.close()"></div>
+          <div class="header__notif-panel" role="dialog" aria-label="Panel de notificaciones">
+            <div class="header__notif-header">
+              <span class="header__notif-title">Notificaciones</span>
+              @if (notif.unreadCount() > 0) {
+                <button class="header__notif-mark-all" (click)="notif.markAllRead()">Marcar todas como leídas</button>
+              }
+            </div>
+            @if (notif.isLoading()) {
+              <div class="header__notif-state">Cargando...</div>
+            } @else if (notif.notifications().length === 0) {
+              <div class="header__notif-state">No hay notificaciones.</div>
+            } @else {
+              <div class="header__notif-list">
+                @for (n of notif.notifications(); track n.id) {
+                  <button class="header__notif-item" [class.header__notif-item--unread]="!n.isRead" (click)="notif.markRead(n)">
+                    @if (!n.isRead) {
+                      <span class="header__notif-dot"></span>
+                    }
+                    <div class="header__notif-item-body">
+                      <span class="header__notif-item-title">{{ n.title }}</span>
+                      <span class="header__notif-item-text">{{ n.body }}</span>
+                      <span class="header__notif-item-time">{{ n.createdAt | date:'dd/MM HH:mm' }}</span>
+                    </div>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- User menu -->
       <div class="header__user-menu">
         <!-- Trigger -->
         <button class="header__user-btn" (click)="toggleMenu()" [attr.aria-expanded]="showMenu()">
@@ -38,6 +82,7 @@
           </div>
         }
       </div>
+
     }
   </div>
 </header>

@@ -114,6 +114,17 @@
                     [label]="usersVm.editingId() ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña'"
                     type="password"
                     formControlName="password" />
+                  @if (usersVm.selectedRole() === 'DOCTOR') {
+                    <div class="form-field">
+                      <label class="form-label">Profesional vinculado</label>
+                      <select class="form-select" formControlName="professionalId">
+                        <option value="">— Sin vincular —</option>
+                        @for (p of usersVm.professionals(); track p.id) {
+                          <option [value]="p.id">{{ p.name }} · {{ p.specialty }}</option>
+                        }
+                      </select>
+                    </div>
+                  }
                 </div>
                 <div class="user-form-actions">
                   <app-button type="button" variant="ghost" size="sm" (click)="usersVm.closeForm()">Cancelar</app-button>
