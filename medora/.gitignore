@@ -43,3 +43,9 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Playwright
+/playwright-report-*/
+/test-results/
+# E2E env files with real credentials — commit only .env.e2e.local as example
+.env.e2e.dev

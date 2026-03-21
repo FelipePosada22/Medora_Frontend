@@ -81,6 +81,7 @@ import type { BadgeVariant } from '../../../../shared/components/badge/badge.com
       grid-template-columns: 1fr 300px;
       gap: var(--space-4);
       align-items: start;
+      > * { min-width: 0; }
     }
     @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
 

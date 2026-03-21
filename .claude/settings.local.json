@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(grep -rn \"const BASE = ''http://localhost:3000''\" \"c:\\\\Users\\\\USER\\\\Desktop\\\\personal\\\\kareo\\\\Medora_Frontend\\\\medora\\\\e2e\" --include=\"*.ts\" -l)",
+      "Bash(\"c:\\\\Users\\\\USER\\\\Desktop\\\\personal\\\\kareo\\\\Medora_Frontend\\\\medora\\\\.gitignore\":*)",
+      "Bash(npx cross-env:*)"
     ]
   }
 }
